@@ -1,0 +1,43 @@
+{
+    "name": "crypto-icon-next-cli",
+    "version": "1.0.0",
+    "description": "CLI tool for generating crypto icon components for Next.js projects with shadcn/ui and Tailwind CSS",
+    "main": "dist/index.js",
+    "bin": {
+        "crypto-next-icons": "dist/index.js"
+    },
+    "scripts": {
+        "build": "tsc && node scripts/copy-templates.js",
+        "dev": "ts-node src/index.ts",
+        "start": "node dist/index.js",
+        "watch": "nodemon --exec ts-node src/index.ts",
+        "prepublishOnly": "npm run build",
+        "test": "echo \"Error: no test specified\" && exit 1"
+    },
+    "keywords": [
+        "cli",
+        "nextjs",
+        "crypto",
+        "icons",
+        "shadcn",
+        "tailwind",
+        "typescript"
+    ],
+    "author": "",
+    "license": "MIT",
+    "type": "commonjs",
+    "devDependencies": {
+        "@types/fs-extra": "^11.0.4",
+        "@types/inquirer": "^9.0.8",
+        "@types/node": "^24.0.4",
+        "nodemon": "^3.1.10",
+        "ts-node": "^10.9.2",
+        "typescript": "^5.8.3"
+    },
+    "dependencies": {
+        "chalk": "^5.4.1",
+        "commander": "^14.0.0",
+        "fs-extra": "^11.3.0",
+        "inquirer": "^12.6.3"
+    }
+}
