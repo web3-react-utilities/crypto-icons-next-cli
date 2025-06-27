@@ -23,8 +23,16 @@
         "tailwind",
         "typescript"
     ],
-    "author": "",
+    "author": "QuyenLee",
     "license": "MIT",
+    "repository": {
+        "type": "git",
+        "url": "git+https://github.com/web3-react-utilities/crypto-icons-next-cli.git"
+    },
+    "bugs": {
+        "url": "https://github.com/web3-react-utilities/crypto-icons-next-cli/issues"
+    },
+    "homepage": "https://github.com/web3-react-utilities/crypto-icons-next-cli#readme",
     "type": "commonjs",
     "devDependencies": {
         "@types/fs-extra": "^11.0.4",
