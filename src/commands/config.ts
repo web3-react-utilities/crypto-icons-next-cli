@@ -5,6 +5,7 @@ import { loadConfig, saveConfig, Config } from "../utils/config";
 export type ConfigCommandOptions = {
     dir?: string;
     imagePath?: string;
+    darkModeClass?: string;
     reset?: boolean;
 };
 
@@ -18,13 +19,16 @@ export async function configCommand(options: ConfigCommandOptions): Promise<void
 
         let config = await loadConfig();
 
-        if (options.dir || options.imagePath) {
+        if (options.dir || options.imagePath || options.darkModeClass) {
             // Direct setting via options
             if (options.dir) {
                 config.defaultDirectory = options.dir;
             }
             if (options.imagePath) {
                 config.imageBasePath = options.imagePath;
+            }
+            if (options.darkModeClass) {
+                config.darkModeClass = options.darkModeClass;
             }
 
             await saveConfig(config);
@@ -51,6 +55,13 @@ export async function configCommand(options: ConfigCommandOptions): Promise<void
                 validate: (input: string) => input.trim().length > 0 || "Image path cannot be empty",
             },
             {
+                type: "input",
+                name: "darkModeClass",
+                message: "CSS class for dark mode detection:",
+                default: config.darkModeClass || "dark",
+                validate: (input: string) => input.trim().length > 0 || "Dark mode class cannot be empty",
+            },
+            {
                 type: "confirm",
                 name: "save",
                 message: "Save configuration?",
@@ -62,6 +73,7 @@ export async function configCommand(options: ConfigCommandOptions): Promise<void
             const newConfig: Config = {
                 defaultDirectory: answers.defaultDirectory,
                 imageBasePath: answers.imageBasePath,
+                darkModeClass: answers.darkModeClass,
             };
 
             await saveConfig(newConfig);

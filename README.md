@@ -1,38 +1,56 @@
 # Crypto Icon Next.js CLI
 
-🚀 A CLI tool for generating crypto icon components specifically designed for Next.js projects using shadcn/ui, Tailwind All generated components accept these props:
-
-```typescript
-type ComponentProps = {
-    className?: string; // Additional CSS classes
-    size?: number; // For square icons (default: 24)
-    width?: number; // Specific width (overrides size)
-    height?: number; // Specific height (overrides size)
-    alt?: string; // Alt text (default: icon name)
-};
-```
-
-Examples:
-
-````tsx
-// Square icon with size
-<IconBTC size={32} />
-
-// Custom dimensions
-<IconBTC width={40} height={30} />
-
-// With styling
-<IconBTC size={24} className="rounded-full border" />
-```ext.js Image component.
+🚀 A CLI tool for generating crypto icon components specifically designed for Next.js projects using shadcn/ui, Tailwind CSS, and Next.js Image component.
 
 ## Features
 
 -   ✨ **Next.js optimized** - Uses Next.js `Image` component for optimal performance
 -   🌗 **Automatic theme switching** - Smart light/dark mode support with Tailwind CSS
 -   🎨 **shadcn/ui compatible** - Follows shadcn/ui patterns and best practices
--   📦 **Three categories** - Support for tokens, wallets, and systems
+-   📦 **Universal component** - One `CryptoIcon` component for all icons
 -   🔧 **TypeScript first** - Full TypeScript support with proper type definitions
 -   ⚡ **Tree-shakable** - Optimized exports for minimal bundle size
+
+## Component Props
+
+The `CryptoIcon` component accepts these props:
+
+```typescript
+type CryptoIconProps = {
+    name: string; // Icon name (e.g., "BTC", "MetaMask", "Ethereum")
+    className?: string; // Additional CSS classes
+    size?: number; // For square icons (default: 24)
+    width?: number; // Specific width (overrides size)
+    height?: number; // Specific height (overrides size)
+    alt?: string; // Alt text (default: icon name)
+    fallback?: React.ReactNode; // Custom fallback when icon not found
+    darkModeClass?: string; // CSS class for dark mode detection (default: "dark")
+};
+```
+
+Examples:
+
+```tsx
+// Basic usage
+<CryptoIcon name="BTC" size={32} />
+
+// With TypeScript enums
+import { TokenSymbol, WalletName } from "./components/crypto-icons/types";
+<CryptoIcon name={TokenSymbol.BTC} size={32} />
+<CryptoIcon name={WalletName.MetaMask} size={24} />
+
+// Custom dimensions
+<CryptoIcon name="BTC" width={40} height={30} />
+
+// With styling
+<CryptoIcon name="BTC" size={24} className="rounded-full border" />
+
+// With custom fallback
+<CryptoIcon name="UNKNOWN" size={24} fallback={<span>❓</span>} />
+
+// Custom dark mode class (for non-standard theme systems)
+<CryptoIcon name="ETH" size={32} darkModeClass="dark-theme" />
+```
 
 ## Installation
 
@@ -40,7 +58,7 @@ No installation required! Use with npx:
 
 ```bash
 npx crypto-icon-next-cli@latest init
-````
+```
 
 ## Quick Start
 
@@ -61,19 +79,32 @@ npx crypto-icon-next-cli@latest add --system Ethereum Polygon
 3. **Use in your components**:
 
 ```tsx
-import { IconBTC, IconETH } from "./components/ui/crypto-icons/tokens";
-import { IconMetaMask } from "./components/ui/crypto-icons/wallets";
+import { CryptoIcon } from "./components/crypto-icons";
 
 export function WalletBalance() {
     return (
         <div className="flex items-center gap-2">
-            <IconBTC width={32} height={32} />
-            <IconETH width={32} height={32} className="rounded-full" />
-            <IconMetaMask width={24} height={24} />
+            {/* Icons that exist in the map will display the image */}
+            <CryptoIcon name="BTC" size={32} />
+            <CryptoIcon name="ETH" size={32} className="rounded-full" />
+            <CryptoIcon name="MetaMask" size={24} />
+
+            {/* Icons that don't exist will show fallback text */}
+            <CryptoIcon name="UNKNOWN" size={24} />
+
+            {/* Custom fallback */}
+            <CryptoIcon name="NOTFOUND" size={24} fallback={<div className="w-6 h-6 bg-gray-300 rounded">?</div>} />
         </div>
     );
 }
 ```
+
+**Universal Icon Component Benefits:**
+✅ **One component for all icons** - No need for separate IconBTC, IconETH, etc.  
+✅ **Dynamic icon loading** - Pass any icon name as a string  
+✅ **Fallback support** - Shows text or custom component when icon not found  
+✅ **Type-safe** - Full TypeScript support with intellisense  
+✅ **No bundle bloat** - Only loads the icons you actually use
 
 ## Commands
 
@@ -85,14 +116,16 @@ Configure default settings for the CLI:
 npx crypto-icon-next-cli@latest config
 
 Options:
-  -d, --dir <directory>      Set default target directory
-  -i, --image-path <path>    Set default image base path
-  -r, --reset               Reset configuration to defaults
+  -d, --dir <directory>           Set default target directory
+  -i, --image-path <path>         Set default image base path
+  -c, --dark-mode-class <class>   Set CSS class for dark mode detection (default: dark)
+  -r, --reset                     Reset configuration to defaults
 
 Examples:
   npx crypto-icon-next-cli@latest config
   npx crypto-icon-next-cli@latest config --dir ./components/icons
   npx crypto-icon-next-cli@latest config --image-path /assets/crypto
+  npx crypto-icon-next-cli@latest config --dark-mode-class "dark-theme"
   npx crypto-icon-next-cli@latest config --reset
 ```
 
@@ -150,51 +183,101 @@ After initialization, your project will have this structure:
 
 ```
 src/components/crypto-icons/
-├── tokens/
-│   ├── IconBTC.tsx
-│   ├── IconETH.tsx
-│   └── index.ts
-├── wallets/
-│   ├── IconMetaMask.tsx
-│   ├── IconTrustWallet.tsx
-│   └── index.ts
-├── systems/
-│   ├── IconEthereum.tsx
-│   ├── IconPolygon.tsx
-│   └── index.ts
+├── CryptoIcon.tsx          # Universal icon component
 ├── types/
-│   └── index.ts
+│   ├── index.ts           # Main type exports
+│   ├── TokenSymbol.ts     # Token symbols enum
+│   ├── WalletName.ts      # Wallet names enum
+│   └── SystemName.ts      # System names enum
 ├── constants/
-│   └── imagePaths.ts
+│   └── imagePaths.ts      # Central icon map
 ├── utils/
-│   └── theme.ts
-└── index.ts
+│   └── theme.ts           # Theme detection utilities
+├── tokens/
+│   └── index.ts           # Legacy token exports (empty)
+├── wallets/
+│   └── index.ts           # Legacy wallet exports (empty)
+├── systems/
+│   └── index.ts           # Legacy system exports (empty)
+└── index.ts               # Main exports
 ```
 
-## Component API
+## Universal Component Architecture
 
-All generated components accept these props:
+Instead of generating individual component files for each icon, this CLI uses a universal component approach:
+
+```tsx
+// ❌ Old approach (individual components)
+import { IconBTC, IconETH, IconMetaMask } from "./crypto-icons/tokens";
+
+// ✅ New approach (universal component)
+import { CryptoIcon, TokenSymbol, WalletName } from "./crypto-icons";
+
+function Portfolio() {
+    return (
+        <div>
+            <CryptoIcon name="BTC" size={32} />
+            <CryptoIcon name={TokenSymbol.ETH} size={32} />
+            <CryptoIcon name={WalletName.MetaMask} size={24} />
+        </div>
+    );
+}
+```
+
+### Icon Map Structure
+
+All icons are stored in a centralized map:
 
 ```typescript
-type ComponentProps = {
-    className?: string; // Additional CSS classes
-    width?: number; // Image width (default: 24)
-    height?: number; // Image height (default: 24)
-    alt?: string; // Alt text (default: icon name)
+// constants/imagePaths.ts
+export const iconMap: Record<string, ImagePaths> = {
+    BTC: {
+        lightMode: "/images/crypto/tokens/BTC-lightmode.png",
+        darkMode: "/images/crypto/tokens/BTC-darkmode.png",
+    },
+    MetaMask: {
+        lightMode: "/images/crypto/wallets/MetaMask-lightmode.png",
+        darkMode: "/images/crypto/wallets/MetaMask-darkmode.png",
+    },
+    // ... more icons
 };
 ```
 
 ## Theme Support
 
-Icons automatically switch between light and dark variants based on your theme configuration:
+Icons automatically switch between light and dark variants using **CSS class detection**:
 
 ```tsx
-// Light mode: /images/crypto/tokens/BTC-lightmode.png
-// Dark mode: /images/crypto/tokens/BTC-darkmode.png
-<IconBTC />
+// Automatically detects dark mode via CSS class (default: "dark")
+<CryptoIcon name="BTC" size={32} />
+
+// Custom dark mode class for different theme systems
+<CryptoIcon name="BTC" size={32} darkModeClass="dark-theme" />
 ```
 
-Make sure you have `next-themes` configured in your Next.js project for automatic theme switching.
+The component monitors DOM changes using `MutationObserver` to detect theme changes in real-time.
+
+### Configuration
+
+Configure your theme detection class globally:
+
+```bash
+npx crypto-icon-next-cli@latest config --dark-mode-class "your-dark-class"
+```
+
+Or in your config file:
+
+```json
+{
+    "defaultDirectory": "./components/crypto-icons",
+    "imageBasePath": "/images/crypto",
+    "darkModeClass": "dark"
+}
+```
+
+### No next-themes Dependency
+
+This CLI **does not require** `next-themes`. It uses pure CSS class detection, making it compatible with any theme system that toggles CSS classes.
 
 ## Image Organization
 
@@ -222,7 +305,7 @@ public/images/crypto/
 -   Next.js 13+ (with app router support)
 -   TypeScript
 -   Tailwind CSS
--   next-themes (for automatic theme switching)
+-   **No next-themes required** - Uses CSS class detection
 
 ## Troubleshooting
 
@@ -258,9 +341,18 @@ The CLI stores configuration in `.crypto-icons.json` in your project root. You c
 ```json
 {
     "defaultDirectory": "./src/components/crypto-icons",
-    "imageBasePath": "/images/crypto"
+    "imageBasePath": "/images/crypto",
+    "darkModeClass": "dark"
 }
 ```
+
+### Theme Detection Issues
+
+If your icons aren't switching themes properly:
+
+1. **Check your CSS class**: Make sure your theme system adds the correct class to `document.documentElement` or `document.body`
+2. **Configure the class**: Use `--dark-mode-class` option to match your theme system
+3. **Test manually**: Check if `document.documentElement.classList.contains("dark")` returns true in dark mode
 
 ## Contributing
 

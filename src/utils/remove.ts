@@ -6,10 +6,8 @@ export async function removeTokens(tokens: string[], targetDir: string): Promise
     console.log(chalk.blue(`Removing ${tokens.length} token(s)...`));
 
     for (const token of tokens) {
-        await removeTokenComponent(token, targetDir);
-        await removeFromTokenExports(token, targetDir);
-        await removeFromTokenEnum(token, targetDir);
-        await removeFromImagePaths(token, "TOKEN", targetDir);
+        await removeFromIconMap(token, targetDir);
+        await removeFromTokenSymbolEnum(token, targetDir);
     }
 }
 
@@ -17,10 +15,8 @@ export async function removeWallets(wallets: string[], targetDir: string): Promi
     console.log(chalk.blue(`Removing ${wallets.length} wallet(s)...`));
 
     for (const wallet of wallets) {
-        await removeWalletComponent(wallet, targetDir);
-        await removeFromWalletExports(wallet, targetDir);
+        await removeFromIconMap(wallet, targetDir);
         await removeFromWalletEnum(wallet, targetDir);
-        await removeFromImagePaths(wallet, "WALLET", targetDir);
     }
 }
 
@@ -28,10 +24,30 @@ export async function removeSystems(systems: string[], targetDir: string): Promi
     console.log(chalk.blue(`Removing ${systems.length} system(s)...`));
 
     for (const system of systems) {
-        await removeSystemComponent(system, targetDir);
-        await removeFromSystemExports(system, targetDir);
+        await removeFromIconMap(system, targetDir);
         await removeFromSystemEnum(system, targetDir);
-        await removeFromImagePaths(system, "SYSTEM", targetDir);
+    }
+}
+
+async function removeFromIconMap(name: string, targetDir: string): Promise<void> {
+    const constantsFile = path.join(targetDir, "constants", "imagePaths.ts");
+
+    if (!(await fs.pathExists(constantsFile))) {
+        console.log(chalk.yellow(`⚠️ Constants file not found: ${constantsFile}`));
+        return;
+    }
+
+    let content = await fs.readFile(constantsFile, "utf-8");
+
+    // Remove the icon entry from iconMap
+    const iconKeyRegex = new RegExp(`\\s*"${name}":\\s*\\{[^}]*\\},?\\n?`, "g");
+    const updatedContent = content.replace(iconKeyRegex, "");
+
+    if (content !== updatedContent) {
+        await fs.writeFile(constantsFile, updatedContent);
+        console.log(chalk.green(`✓ Removed ${name} from icon map`));
+    } else {
+        console.log(chalk.yellow(`⚠️ Icon ${name} not found in map`));
     }
 }
 
@@ -110,44 +126,44 @@ async function removeFromSystemExports(system: string, targetDir: string): Promi
     }
 }
 
-async function removeFromTokenEnum(token: string, targetDir: string): Promise<void> {
-    const typesFile = path.join(targetDir, "types", "index.ts");
+async function removeFromTokenSymbolEnum(token: string, targetDir: string): Promise<void> {
+    const tokenSymbolFile = path.join(targetDir, "types", "TokenSymbol.ts");
 
-    if (await fs.pathExists(typesFile)) {
-        let content = await fs.readFile(typesFile, "utf-8");
+    if (await fs.pathExists(tokenSymbolFile)) {
+        let content = await fs.readFile(tokenSymbolFile, "utf-8");
         const enumEntry = `  ${token} = "${token}",`;
 
         if (content.includes(enumEntry)) {
             content = content.replace(enumEntry + "\n", "").replace(enumEntry, "");
-            await fs.writeFile(typesFile, content);
+            await fs.writeFile(tokenSymbolFile, content);
         }
     }
 }
 
 async function removeFromWalletEnum(wallet: string, targetDir: string): Promise<void> {
-    const typesFile = path.join(targetDir, "types", "index.ts");
+    const walletNameFile = path.join(targetDir, "types", "WalletName.ts");
 
-    if (await fs.pathExists(typesFile)) {
-        let content = await fs.readFile(typesFile, "utf-8");
+    if (await fs.pathExists(walletNameFile)) {
+        let content = await fs.readFile(walletNameFile, "utf-8");
         const enumEntry = `  ${wallet} = "${wallet}",`;
 
         if (content.includes(enumEntry)) {
             content = content.replace(enumEntry + "\n", "").replace(enumEntry, "");
-            await fs.writeFile(typesFile, content);
+            await fs.writeFile(walletNameFile, content);
         }
     }
 }
 
 async function removeFromSystemEnum(system: string, targetDir: string): Promise<void> {
-    const typesFile = path.join(targetDir, "types", "index.ts");
+    const systemNameFile = path.join(targetDir, "types", "SystemName.ts");
 
-    if (await fs.pathExists(typesFile)) {
-        let content = await fs.readFile(typesFile, "utf-8");
+    if (await fs.pathExists(systemNameFile)) {
+        let content = await fs.readFile(systemNameFile, "utf-8");
         const enumEntry = `  ${system} = "${system}",`;
 
         if (content.includes(enumEntry)) {
             content = content.replace(enumEntry + "\n", "").replace(enumEntry, "");
-            await fs.writeFile(typesFile, content);
+            await fs.writeFile(systemNameFile, content);
         }
     }
 }

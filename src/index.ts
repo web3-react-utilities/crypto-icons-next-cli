@@ -15,6 +15,7 @@ program
     .description("Configure default settings for the CLI")
     .option("-d, --dir <directory>", "Set default target directory")
     .option("-i, --image-path <path>", "Set default image base path")
+    .option("-c, --dark-mode-class <class>", "Set CSS class for dark mode detection (default: dark)")
     .option("-r, --reset", "Reset configuration to defaults")
     .action(configCommand);
 

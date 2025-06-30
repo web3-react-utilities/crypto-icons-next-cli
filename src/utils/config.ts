@@ -5,6 +5,7 @@ import chalk from "chalk";
 export type Config = {
     defaultDirectory?: string;
     imageBasePath?: string;
+    darkModeClass?: string; // CSS class for dark mode (default: "dark")
 };
 
 const CONFIG_FILE_NAME = ".crypto-icons.json";
@@ -54,4 +55,9 @@ export async function getTargetDirectoryWithConfig(dir?: string): Promise<string
 export async function getImageBasePathWithConfig(): Promise<string> {
     const config = await loadConfig();
     return config.imageBasePath || "/images/crypto";
+}
+
+export async function getDarkModeClassWithConfig(): Promise<string> {
+    const config = await loadConfig();
+    return config.darkModeClass || "dark";
 }
