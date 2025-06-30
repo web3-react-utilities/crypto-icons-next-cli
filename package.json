@@ -1,6 +1,6 @@
 {
     "name": "crypto-icon-next-cli",
-    "version": "1.0.3",
+    "version": "1.0.4",
     "description": "CLI tool for generating crypto icon components for Next.js projects with shadcn/ui and Tailwind CSS",
     "main": "dist/index.js",
     "bin": {
