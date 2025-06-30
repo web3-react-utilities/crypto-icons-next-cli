@@ -16,7 +16,8 @@ export async function initCommand(options: InitCommandOptions): Promise<void> {
         console.log(chalk.white("  1. Configure default settings (optional): crypto-next-icons config"));
         console.log(chalk.white("  2. Add some icons: crypto-next-icons add --token BTC ETH"));
         console.log(chalk.white("  3. Import and use in your components:"));
-        console.log(chalk.gray(`     import { IconBTC } from "${targetDir.replace(process.cwd(), ".")}/tokens"`));
+        console.log(chalk.gray(`     import { CryptoIcon } from "${targetDir.replace(process.cwd(), ".")}"`));
+        console.log(chalk.gray(`     <CryptoIcon name="BTC" size={32} />`));
     } catch (error) {
         console.error(chalk.red("❌ Failed to initialize crypto icons:"), error);
         process.exit(1);

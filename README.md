@@ -18,25 +18,28 @@ The `CryptoIcon` component accepts these props:
 ```typescript
 type CryptoIconProps = {
     name: string; // Icon name (e.g., "BTC", "MetaMask", "Ethereum")
+    mode?: "light" | "dark"; // Display mode (default: "light")
     className?: string; // Additional CSS classes
     size?: number; // For square icons (default: 24)
     width?: number; // Specific width (overrides size)
     height?: number; // Specific height (overrides size)
     alt?: string; // Alt text (default: icon name)
     fallback?: React.ReactNode; // Custom fallback when icon not found
-    darkModeClass?: string; // CSS class for dark mode detection (default: "dark")
 };
 ```
 
 Examples:
 
 ```tsx
-// Basic usage
+// Basic usage (light mode by default)
 <CryptoIcon name="BTC" size={32} />
+
+// Dark mode
+<CryptoIcon name="BTC" size={32} mode="dark" />
 
 // With TypeScript enums
 import { TokenSymbol, WalletName } from "./components/crypto-icons/types";
-<CryptoIcon name={TokenSymbol.BTC} size={32} />
+<CryptoIcon name={TokenSymbol.BTC} size={32} mode="dark" />
 <CryptoIcon name={WalletName.MetaMask} size={24} />
 
 // Custom dimensions
@@ -48,8 +51,9 @@ import { TokenSymbol, WalletName } from "./components/crypto-icons/types";
 // With custom fallback
 <CryptoIcon name="UNKNOWN" size={24} fallback={<span>❓</span>} />
 
-// Custom dark mode class (for non-standard theme systems)
-<CryptoIcon name="ETH" size={32} darkModeClass="dark-theme" />
+// Dynamic mode switching based on your app's theme state
+const [isDark, setIsDark] = useState(false);
+<CryptoIcon name="ETH" size={32} mode={isDark ? "dark" : "light"} />
 ```
 
 ## Installation
@@ -86,7 +90,7 @@ export function WalletBalance() {
         <div className="flex items-center gap-2">
             {/* Icons that exist in the map will display the image */}
             <CryptoIcon name="BTC" size={32} />
-            <CryptoIcon name="ETH" size={32} className="rounded-full" />
+            <CryptoIcon name="ETH" size={32} mode="dark" className="rounded-full" />
             <CryptoIcon name="MetaMask" size={24} />
 
             {/* Icons that don't exist will show fallback text */}
@@ -118,14 +122,12 @@ npx crypto-icon-next-cli@latest config
 Options:
   -d, --dir <directory>           Set default target directory
   -i, --image-path <path>         Set default image base path
-  -c, --dark-mode-class <class>   Set CSS class for dark mode detection (default: dark)
   -r, --reset                     Reset configuration to defaults
 
 Examples:
   npx crypto-icon-next-cli@latest config
   npx crypto-icon-next-cli@latest config --dir ./components/icons
   npx crypto-icon-next-cli@latest config --image-path /assets/crypto
-  npx crypto-icon-next-cli@latest config --dark-mode-class "dark-theme"
   npx crypto-icon-next-cli@latest config --reset
 ```
 
@@ -193,12 +195,6 @@ src/components/crypto-icons/
 │   └── imagePaths.ts      # Central icon map
 ├── utils/
 │   └── theme.ts           # Theme detection utilities
-├── tokens/
-│   └── index.ts           # Legacy token exports (empty)
-├── wallets/
-│   └── index.ts           # Legacy wallet exports (empty)
-├── systems/
-│   └── index.ts           # Legacy system exports (empty)
 └── index.ts               # Main exports
 ```
 
@@ -217,7 +213,7 @@ function Portfolio() {
     return (
         <div>
             <CryptoIcon name="BTC" size={32} />
-            <CryptoIcon name={TokenSymbol.ETH} size={32} />
+            <CryptoIcon name={TokenSymbol.ETH} size={32} mode="dark" />
             <CryptoIcon name={WalletName.MetaMask} size={24} />
         </div>
     );
@@ -243,41 +239,35 @@ export const iconMap: Record<string, ImagePaths> = {
 };
 ```
 
-## Theme Support
+## Manual Theme Control
 
-Icons automatically switch between light and dark variants using **CSS class detection**:
+Icons support both light and dark variants. You control the display mode manually:
 
 ```tsx
-// Automatically detects dark mode via CSS class (default: "dark")
+// Light mode (default)
 <CryptoIcon name="BTC" size={32} />
 
-// Custom dark mode class for different theme systems
-<CryptoIcon name="BTC" size={32} darkModeClass="dark-theme" />
-```
+// Dark mode
+<CryptoIcon name="BTC" size={32} mode="dark" />
 
-The component monitors DOM changes using `MutationObserver` to detect theme changes in real-time.
+// Dynamic mode based on your app's theme state
+const [isDark, setIsDark] = useState(false);
+<CryptoIcon name="BTC" size={32} mode={isDark ? "dark" : "light"} />
 
-### Configuration
+// With next-themes or other theme libraries
+import { useTheme } from "next-themes";
 
-Configure your theme detection class globally:
-
-```bash
-npx crypto-icon-next-cli@latest config --dark-mode-class "your-dark-class"
-```
-
-Or in your config file:
-
-```json
-{
-    "defaultDirectory": "./components/crypto-icons",
-    "imageBasePath": "/images/crypto",
-    "darkModeClass": "dark"
+function MyComponent() {
+    const { theme } = useTheme();
+    return (
+        <CryptoIcon
+            name="BTC"
+            size={32}
+            mode={theme === "dark" ? "dark" : "light"}
+        />
+    );
 }
 ```
-
-### No next-themes Dependency
-
-This CLI **does not require** `next-themes`. It uses pure CSS class detection, making it compatible with any theme system that toggles CSS classes.
 
 ## Image Organization
 
@@ -305,7 +295,6 @@ public/images/crypto/
 -   Next.js 13+ (with app router support)
 -   TypeScript
 -   Tailwind CSS
--   **No next-themes required** - Uses CSS class detection
 
 ## Troubleshooting
 
@@ -341,18 +330,9 @@ The CLI stores configuration in `.crypto-icons.json` in your project root. You c
 ```json
 {
     "defaultDirectory": "./src/components/crypto-icons",
-    "imageBasePath": "/images/crypto",
-    "darkModeClass": "dark"
+    "imageBasePath": "/images/crypto"
 }
 ```
-
-### Theme Detection Issues
-
-If your icons aren't switching themes properly:
-
-1. **Check your CSS class**: Make sure your theme system adds the correct class to `document.documentElement` or `document.body`
-2. **Configure the class**: Use `--dark-mode-class` option to match your theme system
-3. **Test manually**: Check if `document.documentElement.classList.contains("dark")` returns true in dark mode
 
 ## Contributing
 

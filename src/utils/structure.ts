@@ -6,15 +6,7 @@ export async function createBaseStructure(targetDir: string): Promise<void> {
     console.log(chalk.blue(`Creating base structure at: ${targetDir}`));
 
     // Create main directories
-    const directories = [
-        targetDir,
-        path.join(targetDir, "tokens"),
-        path.join(targetDir, "wallets"),
-        path.join(targetDir, "systems"),
-        path.join(targetDir, "types"),
-        path.join(targetDir, "utils"),
-        path.join(targetDir, "constants"),
-    ];
+    const directories = [targetDir, path.join(targetDir, "types"), path.join(targetDir, "utils"), path.join(targetDir, "constants")];
 
     for (const dir of directories) {
         await fs.ensureDir(dir);
@@ -104,15 +96,9 @@ export enum SystemName {
 }
 
 async function createUtilsFiles(targetDir: string): Promise<void> {
-    const utilsContent = `import { useTheme } from "next-themes";
-
-export function useIsDarkMode(): boolean {
-  const { theme, systemTheme } = useTheme();
-  return theme === 'dark' || (theme === 'system' && systemTheme === 'dark');
-}
-
-export function getImageSrc(lightMode: string, darkMode: string, isDark: boolean): string {
-  return isDark ? darkMode : lightMode;
+    const utilsContent = `// Utility functions for theme handling
+export function getImageSrc(lightMode: string, darkMode: string, mode: "light" | "dark"): string {
+  return mode === "dark" ? darkMode : lightMode;
 }
 `;
 
@@ -154,53 +140,25 @@ export function getIconPaths(name: string): ImagePaths | null {
 async function createUniversalIconComponent(targetDir: string): Promise<void> {
     const componentContent = `"use client";
 import Image from "next/image";
-import { useEffect, useState } from "react";
 import { ComponentProps } from "./types";
 import { getIconPaths } from "./constants/imagePaths";
 
 export type CryptoIconProps = ComponentProps & {
   name: string;  // Tên icon (ví dụ: "BTC", "MetaMask", "Ethereum")
+  mode?: "light" | "dark"; // Chế độ hiển thị (mặc định: "light")
   fallback?: React.ReactNode; // Component hiển thị khi không tìm thấy icon
-  darkModeClass?: string; // CSS class để detect dark mode (default: "dark")
 };
 
 export function CryptoIcon({
   name,
+  mode = "light",
   className = "",
   size = 24,
   width,
   height,
   alt,
-  fallback,
-  darkModeClass = "dark"
+  fallback
 }: CryptoIconProps) {
-  const [isDark, setIsDark] = useState(false);
-  
-  useEffect(() => {
-    // Check if dark mode class exists on document element
-    const checkDarkMode = () => {
-      const hasDarkClass = document.documentElement.classList.contains(darkModeClass) ||
-                          document.body.classList.contains(darkModeClass);
-      setIsDark(hasDarkClass);
-    };
-    
-    // Initial check
-    checkDarkMode();
-    
-    // Listen for class changes using MutationObserver
-    const observer = new MutationObserver(checkDarkMode);
-    observer.observe(document.documentElement, {
-      attributes: true,
-      attributeFilter: ['class']
-    });
-    observer.observe(document.body, {
-      attributes: true,
-      attributeFilter: ['class']
-    });
-    
-    return () => observer.disconnect();
-  }, [darkModeClass]);
-  
   const iconPaths = getIconPaths(name);
   
   // Nếu không tìm thấy icon, hiển thị fallback hoặc text
@@ -226,7 +184,7 @@ export function CryptoIcon({
   
   const finalWidth = width ?? size;
   const finalHeight = height ?? size;
-  const imageSrc = isDark ? iconPaths.darkMode : iconPaths.lightMode;
+  const imageSrc = mode === "dark" ? iconPaths.darkMode : iconPaths.lightMode;
   
   return (
     <Image
@@ -247,24 +205,12 @@ export function CryptoIcon({
 }
 
 async function createIndexFiles(targetDir: string): Promise<void> {
-    const indexFiles = [
-        { path: path.join(targetDir, "tokens", "index.ts"), content: "// Token exports will be added here\n" },
-        { path: path.join(targetDir, "wallets", "index.ts"), content: "// Wallet exports will be added here\n" },
-        { path: path.join(targetDir, "systems", "index.ts"), content: "// System exports will be added here\n" },
-        {
-            path: path.join(targetDir, "index.ts"),
-            content: `export { CryptoIcon } from './CryptoIcon';
-export * from './tokens';
-export * from './wallets';
-export * from './systems';
+    const mainIndexContent = `export { CryptoIcon } from './CryptoIcon';
 export * from './types';
 export * from './constants/imagePaths';
-`,
-        },
-    ];
+`;
 
-    for (const file of indexFiles) {
-        await fs.writeFile(file.path, file.content);
-        console.log(chalk.green(`✓ Created index file: ${path.relative(process.cwd(), file.path)}`));
-    }
+    const mainIndexFile = path.join(targetDir, "index.ts");
+    await fs.writeFile(mainIndexFile, mainIndexContent);
+    console.log(chalk.green(`✓ Created main index file: ${path.relative(process.cwd(), mainIndexFile)}`));
 }
