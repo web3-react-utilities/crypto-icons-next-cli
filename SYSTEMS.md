@@ -17,18 +17,18 @@ Below is the complete list of all available system icons:
 After adding a system icon to your project, you can use it as follows:
 
 ```tsx
-import { IconEthereum, IconPolygon } from "./components/ui/crypto-icons/systems";
+import { CryptoIcon, SystemName } from "./components/crypto-icons";
 
 function NetworkSelector() {
     return (
         <div className="flex gap-2">
             <button className="flex items-center gap-1 px-3 py-2 text-sm border rounded-md hover:bg-gray-50 dark:hover:bg-gray-800">
-                <IconEthereum width={16} height={16} />
+                <CryptoIcon name="Ethereum" size={16} />
                 <span>Ethereum</span>
             </button>
 
             <button className="flex items-center gap-1 px-3 py-2 text-sm border rounded-md hover:bg-gray-50 dark:hover:bg-gray-800">
-                <IconPolygon width={16} height={16} />
+                <CryptoIcon name={SystemName.Polygon} size={16} mode="dark" />
                 <span>Polygon</span>
             </button>
         </div>
@@ -36,14 +36,14 @@ function NetworkSelector() {
 }
 ```
 
-## Image Requirements
+## Image Sources
 
-Each system requires two image files in your `public/images/crypto/systems/` directory:
+All system icons are automatically loaded from Firebase Storage URLs:
 
--   `[SYSTEM_NAME]-lightmode.png` - Light theme version
--   `[SYSTEM_NAME]-darkmode.png` - Dark theme version
+-   **Light mode**: `https://firebasestorage.googleapis.com/v0/b/crypto-images-system/o/[SYSTEM_NAME]-lightmode.png?alt=media`
+-   **Dark mode**: `https://firebasestorage.googleapis.com/v0/b/crypto-images-system/o/[SYSTEM_NAME]-darkmode.png?alt=media`
 
 For example, for Ethereum system:
 
--   `public/images/crypto/systems/Ethereum-lightmode.png`
--   `public/images/crypto/systems/Ethereum-darkmode.png`
+-   Light mode: `https://firebasestorage.googleapis.com/v0/b/crypto-images-system/o/Ethereum-lightmode.png?alt=media`
+-   Dark mode: `https://firebasestorage.googleapis.com/v0/b/crypto-images-system/o/Ethereum-darkmode.png?alt=media`

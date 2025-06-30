@@ -52,9 +52,22 @@ async function addToIconMap(name: string, category: string, targetDir: string): 
         throw new Error(`Constants file not found: ${constantsFile}`);
     }
 
-    const imageBasePath = await getImageBasePathWithConfig();
-    const lightModePath = `${imageBasePath}/${category}/${name}-lightmode.png`;
-    const darkModePath = `${imageBasePath}/${category}/${name}-darkmode.png`;
+    // Generate Firebase URLs based on category
+    let lightModePath: string;
+    let darkModePath: string;
+
+    if (category === "tokens") {
+        lightModePath = `baseImgUrlToken("${name}-lightmode")`;
+        darkModePath = `baseImgUrlToken("${name}-darkmode")`;
+    } else if (category === "wallets") {
+        lightModePath = `baseImgUrlWallet("${name}-lightmode")`;
+        darkModePath = `baseImgUrlWallet("${name}-darkmode")`;
+    } else if (category === "systems") {
+        lightModePath = `baseImgUrlSystem("${name}-lightmode")`;
+        darkModePath = `baseImgUrlSystem("${name}-darkmode")`;
+    } else {
+        throw new Error(`Unknown category: ${category}`);
+    }
 
     let content = await fs.readFile(constantsFile, "utf-8");
 
@@ -77,10 +90,10 @@ async function addToIconMap(name: string, category: string, targetDir: string): 
     const mapContent = match[2];
     const afterMap = match[3];
 
-    // Add the new icon entry
+    // Add the new icon entry (using function calls, not strings)
     const newEntry = `  "${name}": {
-    lightMode: "${lightModePath}",
-    darkMode: "${darkModePath}"
+    lightMode: ${lightModePath},
+    darkMode: ${darkModePath}
   },`;
 
     // Insert new entry at the end of the map

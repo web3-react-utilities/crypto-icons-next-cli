@@ -17,18 +17,18 @@ Below is the complete list of all available wallet icons:
 After adding a wallet icon to your project, you can use it as follows:
 
 ```tsx
-import { IconMetaMask, IconTrustWallet } from "./components/ui/crypto-icons/wallets";
+import { CryptoIcon, WalletName } from "./components/crypto-icons";
 
 function WalletConnector() {
     return (
         <div className="grid grid-cols-2 gap-4">
             <button className="flex items-center gap-2 p-4 border rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800">
-                <IconMetaMask width={24} height={24} />
+                <CryptoIcon name="MetaMask" size={24} />
                 <span>MetaMask</span>
             </button>
 
             <button className="flex items-center gap-2 p-4 border rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800">
-                <IconTrustWallet width={24} height={24} />
+                <CryptoIcon name={WalletName.TrustWallet} size={24} mode="dark" />
                 <span>Trust Wallet</span>
             </button>
         </div>
@@ -36,14 +36,14 @@ function WalletConnector() {
 }
 ```
 
-## Image Requirements
+## Image Sources
 
-Each wallet requires two image files in your `public/images/crypto/wallets/` directory:
+All wallet icons are automatically loaded from Firebase Storage URLs:
 
--   `[WALLET_NAME]-lightmode.png` - Light theme version
--   `[WALLET_NAME]-darkmode.png` - Dark theme version
+-   **Light mode**: `https://firebasestorage.googleapis.com/v0/b/crypto-images-wallet/o/[WALLET_NAME]-lightmode.png?alt=media`
+-   **Dark mode**: `https://firebasestorage.googleapis.com/v0/b/crypto-images-wallet/o/[WALLET_NAME]-darkmode.png?alt=media`
 
 For example, for MetaMask wallet:
 
--   `public/images/crypto/wallets/MetaMask-lightmode.png`
--   `public/images/crypto/wallets/MetaMask-darkmode.png`
+-   Light mode: `https://firebasestorage.googleapis.com/v0/b/crypto-images-wallet/o/MetaMask-lightmode.png?alt=media`
+-   Dark mode: `https://firebasestorage.googleapis.com/v0/b/crypto-images-wallet/o/MetaMask-darkmode.png?alt=media`

@@ -220,24 +220,34 @@ function Portfolio() {
 }
 ```
 
-### Icon Map Structure
+## Icon Sources
 
-All icons are stored in a centralized map:
+All icons are automatically loaded from Firebase Storage:
 
 ```typescript
 // constants/imagePaths.ts
 export const iconMap: Record<string, ImagePaths> = {
     BTC: {
-        lightMode: "/images/crypto/tokens/BTC-lightmode.png",
-        darkMode: "/images/crypto/tokens/BTC-darkmode.png",
+        lightMode: baseImgUrlToken("BTC-lightmode"),
+        darkMode: baseImgUrlToken("BTC-darkmode"),
     },
     MetaMask: {
-        lightMode: "/images/crypto/wallets/MetaMask-lightmode.png",
-        darkMode: "/images/crypto/wallets/MetaMask-darkmode.png",
+        lightMode: baseImgUrlWallet("MetaMask-lightmode"),
+        darkMode: baseImgUrlWallet("MetaMask-darkmode"),
+    },
+    Ethereum: {
+        lightMode: baseImgUrlSystem("Ethereum-lightmode"),
+        darkMode: baseImgUrlSystem("Ethereum-darkmode"),
     },
     // ... more icons
 };
 ```
+
+### Firebase Storage URLs
+
+-   **Tokens**: `https://firebasestorage.googleapis.com/v0/b/crypto-images-token/o/[TOKEN_NAME]-[mode].png?alt=media`
+-   **Wallets**: `https://firebasestorage.googleapis.com/v0/b/crypto-images-wallet/o/[WALLET_NAME]-[mode].png?alt=media`
+-   **Systems**: `https://firebasestorage.googleapis.com/v0/b/crypto-images-system/o/[SYSTEM_NAME]-[mode].png?alt=media`
 
 ## Manual Theme Control
 
@@ -269,32 +279,12 @@ function MyComponent() {
 }
 ```
 
-## Image Organization
-
-Place your crypto icon images in the following structure:
-
-```
-public/images/crypto/
-├── tokens/
-│   ├── BTC-lightmode.png
-│   ├── BTC-darkmode.png
-│   ├── ETH-lightmode.png
-│   └── ETH-darkmode.png
-├── wallets/
-│   ├── MetaMask-lightmode.png
-│   ├── MetaMask-darkmode.png
-│   └── ...
-└── systems/
-    ├── Ethereum-lightmode.png
-    ├── Ethereum-darkmode.png
-    └── ...
-```
-
 ## Requirements
 
 -   Next.js 13+ (with app router support)
 -   TypeScript
 -   Tailwind CSS
+-   **No local images required** - Icons served from Firebase Storage
 
 ## Troubleshooting
 

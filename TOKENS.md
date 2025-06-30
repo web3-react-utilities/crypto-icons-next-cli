@@ -17,18 +17,18 @@ Below is the complete list of all available token icons:
 After adding a token icon to your project, you can use it as follows:
 
 ```tsx
-import { IconBTC, IconETH } from "./components/ui/crypto-icons/tokens";
+import { CryptoIcon, TokenSymbol } from "./components/crypto-icons";
 
 function Portfolio() {
     return (
         <div className="flex gap-4">
             <div className="flex items-center gap-2">
-                <IconBTC width={32} height={32} />
+                <CryptoIcon name="BTC" size={32} />
                 <span>Bitcoin</span>
             </div>
 
             <div className="flex items-center gap-2">
-                <IconETH width={32} height={32} className="rounded-full" />
+                <CryptoIcon name={TokenSymbol.ETH} size={32} mode="dark" className="rounded-full" />
                 <span>Ethereum</span>
             </div>
         </div>
@@ -36,14 +36,14 @@ function Portfolio() {
 }
 ```
 
-## Image Requirements
+## Image Sources
 
-Each token requires two image files in your `public/images/crypto/tokens/` directory:
+All token icons are automatically loaded from Firebase Storage URLs:
 
--   `[TOKEN_NAME]-lightmode.png` - Light theme version
--   `[TOKEN_NAME]-darkmode.png` - Dark theme version
+-   **Light mode**: `https://firebasestorage.googleapis.com/v0/b/crypto-images-token/o/[TOKEN_NAME]-lightmode.png?alt=media`
+-   **Dark mode**: `https://firebasestorage.googleapis.com/v0/b/crypto-images-token/o/[TOKEN_NAME]-darkmode.png?alt=media`
 
 For example, for BTC token:
 
--   `public/images/crypto/tokens/BTC-lightmode.png`
--   `public/images/crypto/tokens/BTC-darkmode.png`
+-   Light mode: `https://firebasestorage.googleapis.com/v0/b/crypto-images-token/o/BTC-lightmode.png?alt=media`
+-   Dark mode: `https://firebasestorage.googleapis.com/v0/b/crypto-images-token/o/BTC-darkmode.png?alt=media`
