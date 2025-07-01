@@ -39,11 +39,65 @@ async function removeFromIconMap(name: string, targetDir: string): Promise<void>
 
     let content = await fs.readFile(constantsFile, "utf-8");
 
-    // Remove the icon entry from iconMap
-    const iconKeyRegex = new RegExp(`\\s*"${name}":\\s*\\{[^}]*\\},?\\n?`, "g");
-    const updatedContent = content.replace(iconKeyRegex, "");
+    // Find the iconMap object
+    const mapRegex = /(export const iconMap: Record<string, ImagePaths> = \{)([\s\S]*?)(\};)/;
+    const match = content.match(mapRegex);
 
-    if (content !== updatedContent) {
+    if (!match) {
+        console.log(chalk.yellow(`⚠️ Could not find iconMap in constants file`));
+        return;
+    }
+
+    const beforeMap = match[1];
+    const mapContent = match[2];
+    const afterMap = match[3];
+
+    // Check if icon exists in the map
+    const iconKey = `"${name}":`;
+    const mapContentWithoutComments = mapContent.replace(/^\s*\/\/.*$/gm, "");
+    if (!mapContentWithoutComments.includes(iconKey)) {
+        console.log(chalk.yellow(`⚠️ Icon ${name} not found in map`));
+        return;
+    }
+
+    // Parse existing icons and remove the target icon
+    const existingIcons = parseExistingIcons(mapContent);
+
+    // Remove icon from appropriate category
+    let removed = false;
+    existingIcons.tokens = existingIcons.tokens.filter((icon) => {
+        if (icon.name === name) {
+            removed = true;
+            return false;
+        }
+        return true;
+    });
+
+    if (!removed) {
+        existingIcons.wallets = existingIcons.wallets.filter((icon) => {
+            if (icon.name === name) {
+                removed = true;
+                return false;
+            }
+            return true;
+        });
+    }
+
+    if (!removed) {
+        existingIcons.systems = existingIcons.systems.filter((icon) => {
+            if (icon.name === name) {
+                removed = true;
+                return false;
+            }
+            return true;
+        });
+    }
+
+    if (removed) {
+        // Regenerate the iconMap content with proper formatting
+        const newMapContent = generateIconMapContent(existingIcons);
+        const updatedContent = content.replace(mapRegex, beforeMap + newMapContent + afterMap);
+
         await fs.writeFile(constantsFile, updatedContent);
         console.log(chalk.green(`✓ Removed ${name} from icon map`));
     } else {
@@ -181,4 +235,92 @@ async function removeFromImagePaths(name: string, category: "TOKEN" | "WALLET" |
 
         await fs.writeFile(constantsFile, content);
     }
+}
+
+// Helper types and functions for organizing icons
+type IconEntry = {
+    name: string;
+    lightMode: string;
+    darkMode: string;
+};
+
+type OrganizedIcons = {
+    tokens: IconEntry[];
+    wallets: IconEntry[];
+    systems: IconEntry[];
+};
+
+function parseExistingIcons(mapContent: string): OrganizedIcons {
+    const organized: OrganizedIcons = {
+        tokens: [],
+        wallets: [],
+        systems: [],
+    };
+
+    // Parse existing icon entries
+    const iconRegex = /"([^"]+)":\s*\{[^}]+lightMode:\s*([^,]+),\s*darkMode:\s*([^}]+)\s*\}/g;
+    let match;
+
+    while ((match = iconRegex.exec(mapContent)) !== null) {
+        const name = match[1];
+        const lightMode = match[2].trim();
+        const darkMode = match[3].trim();
+
+        const iconEntry: IconEntry = { name, lightMode, darkMode };
+
+        // Categorize based on the function used
+        if (lightMode.includes("baseImgUrlToken")) {
+            organized.tokens.push(iconEntry);
+        } else if (lightMode.includes("baseImgUrlWallet")) {
+            organized.wallets.push(iconEntry);
+        } else if (lightMode.includes("baseImgUrlSystem")) {
+            organized.systems.push(iconEntry);
+        }
+    }
+
+    return organized;
+}
+
+function generateIconMapContent(organized: OrganizedIcons): string {
+    let content = "\n  // Token icons will be added here\n";
+
+    // Add tokens section
+    organized.tokens.forEach((icon: IconEntry, index: number) => {
+        content += `  "${icon.name}": {\n    lightMode: ${icon.lightMode},\n    darkMode: ${icon.darkMode}\n  }`;
+        // Add comma if not the last item in tokens or if there are wallets/systems after
+        if (index < organized.tokens.length - 1 || organized.wallets.length > 0 || organized.systems.length > 0) {
+            content += ",";
+        }
+        content += "\n";
+    });
+
+    if (organized.tokens.length > 0) content += "\n";
+
+    content += "  // Wallet icons will be added here\n";
+
+    // Add wallets section
+    organized.wallets.forEach((icon: IconEntry, index: number) => {
+        content += `  "${icon.name}": {\n    lightMode: ${icon.lightMode},\n    darkMode: ${icon.darkMode}\n  }`;
+        // Add comma if not the last item in wallets or if there are systems after
+        if (index < organized.wallets.length - 1 || organized.systems.length > 0) {
+            content += ",";
+        }
+        content += "\n";
+    });
+
+    if (organized.wallets.length > 0) content += "\n";
+
+    content += "  // System icons will be added here\n";
+
+    // Add systems section
+    organized.systems.forEach((icon: IconEntry, index: number) => {
+        content += `  "${icon.name}": {\n    lightMode: ${icon.lightMode},\n    darkMode: ${icon.darkMode}\n  }`;
+        // Add comma if not the last item
+        if (index < organized.systems.length - 1) {
+            content += ",";
+        }
+        content += "\n";
+    });
+
+    return content;
 }

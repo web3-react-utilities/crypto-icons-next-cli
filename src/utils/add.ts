@@ -253,8 +253,13 @@ function generateIconMapContent(organized: OrganizedIcons): string {
     let content = "\n  // Token icons will be added here\n";
 
     // Add tokens section
-    organized.tokens.forEach((icon: IconEntry) => {
-        content += `  "${icon.name}": {\n    lightMode: ${icon.lightMode},\n    darkMode: ${icon.darkMode}\n  },\n`;
+    organized.tokens.forEach((icon: IconEntry, index: number) => {
+        content += `  "${icon.name}": {\n    lightMode: ${icon.lightMode},\n    darkMode: ${icon.darkMode}\n  }`;
+        // Add comma if not the last item in tokens or if there are wallets/systems after
+        if (index < organized.tokens.length - 1 || organized.wallets.length > 0 || organized.systems.length > 0) {
+            content += ",";
+        }
+        content += "\n";
     });
 
     if (organized.tokens.length > 0) content += "\n";
@@ -262,8 +267,13 @@ function generateIconMapContent(organized: OrganizedIcons): string {
     content += "  // Wallet icons will be added here\n";
 
     // Add wallets section
-    organized.wallets.forEach((icon: IconEntry) => {
-        content += `  "${icon.name}": {\n    lightMode: ${icon.lightMode},\n    darkMode: ${icon.darkMode}\n  },\n`;
+    organized.wallets.forEach((icon: IconEntry, index: number) => {
+        content += `  "${icon.name}": {\n    lightMode: ${icon.lightMode},\n    darkMode: ${icon.darkMode}\n  }`;
+        // Add comma if not the last item in wallets or if there are systems after
+        if (index < organized.wallets.length - 1 || organized.systems.length > 0) {
+            content += ",";
+        }
+        content += "\n";
     });
 
     if (organized.wallets.length > 0) content += "\n";
@@ -271,8 +281,13 @@ function generateIconMapContent(organized: OrganizedIcons): string {
     content += "  // System icons will be added here\n";
 
     // Add systems section
-    organized.systems.forEach((icon: IconEntry) => {
-        content += `  "${icon.name}": {\n    lightMode: ${icon.lightMode},\n    darkMode: ${icon.darkMode}\n  },\n`;
+    organized.systems.forEach((icon: IconEntry, index: number) => {
+        content += `  "${icon.name}": {\n    lightMode: ${icon.lightMode},\n    darkMode: ${icon.darkMode}\n  }`;
+        // Add comma if not the last item
+        if (index < organized.systems.length - 1) {
+            content += ",";
+        }
+        content += "\n";
     });
 
     return content;
