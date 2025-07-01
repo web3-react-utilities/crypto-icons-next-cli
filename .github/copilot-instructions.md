@@ -22,12 +22,29 @@ This is a CLI tool for generating crypto icon components specifically designed f
     -   `types/SystemName.ts` - for system names
     -   `types/index.ts` - main export file
 
-### Theme Detection
+### Theme Control
 
--   **CSS Class Method**: Uses CSS class detection instead of next-themes
--   **MutationObserver**: Monitors DOM changes for theme class updates
--   **Configurable**: Dark mode class is configurable (default: "dark")
--   **No Dependencies**: Removed dependency on next-themes package
+-   **Manual Mode Control**: Uses simple `mode` prop instead of automatic detection
+-   **No Dependencies**: No next-themes or external theme detection libraries
+-   **Simple API**: Component accepts `mode?: "light" | "dark"` prop (default: "light")
+-   **Developer Control**: Theme switching is managed by the developer, not automatically detected
+
+### Firebase Storage Integration
+
+-   **Cloud-based Icons**: All icons are served from Firebase Storage URLs
+-   **No Local Images**: No need for local public/images directory
+-   **CDN Benefits**: Automatic CDN and caching through Firebase Storage
+-   **URL Generation**: Dynamic URLs generated via helper functions:
+    -   `baseImgUrlToken(name)` for token icons
+    -   `baseImgUrlWallet(name)` for wallet icons
+    -   `baseImgUrlSystem(name)` for system icons
+
+### Icon Organization
+
+-   **Categorized Sections**: Icons organized by type in iconMap
+-   **Alphabetical Sorting**: Icons sorted alphabetically within each category
+-   **Smart Insertion**: New icons inserted in correct alphabetical position
+-   **Clean Structure**: Clear separation between tokens, wallets, and systems
 
 ## Development Guidelines for Copilot
 
@@ -36,14 +53,16 @@ This is a CLI tool for generating crypto icon components specifically designed f
 -   This project generates a **universal React component** for Next.js applications using TypeScript
 -   Use Next.js `Image` component from `next/image` instead of standard HTML img tags
 -   Components should be compatible with shadcn/ui component library and follow its patterns
--   Use **CSS class detection** for theme switching, not next-themes
--   The main component is `CryptoIcon` which accepts a `name` prop
+-   Use **manual mode control** with `mode` prop, not automatic theme detection
+-   The main component is `CryptoIcon` which accepts `name` and optional `mode` props
+-   All icons are served from **Firebase Storage** URLs, not local files
 
 ### Universal Component System
 
 -   **DO NOT** create individual component files (IconBTC.tsx, IconETH.tsx, etc.)
 -   **DO** add icons to the `iconMap` object in `constants/imagePaths.ts`
--   **DO** use the format: `"iconName": { lightMode: "path", darkMode: "path" }`
+-   **DO** use Firebase Storage URLs with helper functions: `baseImgUrlToken()`, `baseImgUrlWallet()`, `baseImgUrlSystem()`
+-   **DO** organize icons by category and sort alphabetically within each section
 -   Icons are loaded dynamically through the universal `CryptoIcon` component
 
 ### Type Management
@@ -67,8 +86,8 @@ This is a CLI tool for generating crypto icon components specifically designed f
 -   Config file: `.crypto-icons.json` in project root
 -   Supported options:
     -   `defaultDirectory` - target directory for generated files
-    -   `imageBasePath` - base path for images
-    -   `darkModeClass` - CSS class for dark mode detection
+    -   `imageBasePath` - base path for images (deprecated, now uses Firebase URLs)
+-   CLI options: `--dir`, `--image-path` (legacy)
 -   CLI options: `--dir`, `--image-path`, `--dark-mode-class`
 
 ### File Structure
@@ -82,7 +101,7 @@ components/crypto-icons/
 │   ├── WalletName.ts      # Wallet enum
 │   └── SystemName.ts      # System enum
 ├── constants/
-│   └── imagePaths.ts      # Icon map object
+│   └── imagePaths.ts      # Icon map object with Firebase URLs
 ├── utils/
 │   └── theme.ts           # Theme utilities
 └── index.ts               # Main exports
@@ -91,40 +110,63 @@ components/crypto-icons/
 ### CLI Commands Logic
 
 -   `init`: Creates base structure with universal component
--   `add`: Adds entries to iconMap and updates corresponding enum files
+-   `add`: Adds entries to iconMap and updates corresponding enum files with alphabetical sorting
 -   `remove`: Removes entries from iconMap and enum files
--   `config`: Manages configuration including dark mode class
+-   `config`: Manages configuration (no longer includes dark mode class)
+
+### Firebase Storage Integration
+
+-   **Base URLs**: `https://firebasestorage.googleapis.com/v0/b/crypto-images`
+-   **Token Storage**: `crypto-images-token` bucket
+-   **Wallet Storage**: `crypto-images-wallet` bucket
+-   **System Storage**: `crypto-images-system` bucket
+-   **URL Pattern**: `{bucket}/o/{name}-{mode}.png?alt=media`
+
+### Icon Map Organization
+
+-   **Sectioned by Category**: Tokens, Wallets, Systems have separate sections
+-   **Alphabetical Sorting**: Icons sorted A-Z within each category
+-   **Smart Insertion**: New icons inserted in correct alphabetical position
+-   **Clean Comments**: Section headers without examples to avoid conflicts
 
 ### Best Practices
 
--   Follow alphabetical sorting for iconMap entries
+-   Follow alphabetical sorting for iconMap entries within each category
 -   Use `type` declarations instead of `interface` when defining types
 -   Ensure proper error handling and user-friendly logging
--   Support light/dark mode variants for all icons
--   Image paths follow pattern: `[NAME]-lightmode.png`, `[NAME]-darkmode.png`
+-   Use Firebase Storage URLs for all icons
+-   Icon names follow pattern: `[NAME]-lightmode`, `[NAME]-darkmode`
 -   Maintain proper imports and exports structure for tree-shaking
 -   Always maintain consistency between documentation and source code
-
-### Windows Git Bash Issues
-
--   Git Bash on Windows converts `/path` to Windows absolute paths
--   Document workarounds in README.md troubleshooting section
--   Provide manual config editing instructions for users
 
 ### Component Usage Example
 
 ```tsx
 import { CryptoIcon, TokenSymbol } from "./components/crypto-icons";
 
-// Dynamic string name
-<CryptoIcon name="BTC" size={32} />
+// Manual mode control
+<CryptoIcon name="BTC" size={32} mode="light" />
+<CryptoIcon name="BTC" size={32} mode="dark" />
 
 // With TypeScript enum
 <CryptoIcon name={TokenSymbol.BTC} size={32} />
 
 // Custom fallback
 <CryptoIcon name="UNKNOWN" fallback={<span>❓</span>} />
-
-// Custom dark mode class
-<CryptoIcon name="ETH" darkModeClass="dark-theme" />
 ```
+
+### Key Updates Implemented
+
+1. **Manual Mode Control**: Removed automatic theme detection, now uses `mode?: "light" | "dark"` prop
+2. **Firebase Storage Integration**: All icons served from Firebase Storage URLs instead of local files
+3. **Organized Icon Map**: Icons categorized by type (tokens/wallets/systems) and alphabetically sorted
+4. **Smart Add Logic**: Icons inserted in correct alphabetical position within their category section
+5. **No Folder Generation**: Only creates necessary files, no tokens/wallets/systems folders
+6. **Universal Component**: Single CryptoIcon component for all icon types
+
+### Recent Fixes
+
+-   Fixed duplicate icon detection logic to avoid false positives from comments
+-   Implemented alphabetical sorting within categories when adding icons
+-   Removed examples from iconMap comments to prevent conflicts
+-   Added proper section organization in generated iconMap
