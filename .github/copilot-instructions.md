@@ -1,4 +1,26 @@
-<!-- Use this file to provide workspace-specific custom instructions to Copilot. For more details, visit https://code.visualstudio.com/docs/copilot/copilot-customization#_use-a-githubcopilotinstructionsmd-file -->
+<!-- Use this file to provide w### Firebase Storage Integration
+
+-   **Cloud-based Icons**: All icons are served from Firebase Storage URLs
+-   **No Local Images**: No need for local public/images directory
+-   **CDN Benefits**: Automatic CDN and caching through Firebase Storage
+-   **URL Generation**: Dynamic URLs generated via helper functions:
+    -   `baseImgUrlToken(name)` for token icons
+    -   `baseImgUrlWallet(name)` for wallet icons
+    -   `baseImgUrlSystem(name)` for system icons
+
+### Special Icons Handling
+
+-   **Special Icons**: Icons that have different images for light and dark modes
+-   **Special Lists**: Defined in `src/utils/specialIcons.ts`:
+    -   `specialTokens[]` - tokens with separate light/dark images
+    -   `specialWallets[]` - wallets with separate light/dark images
+    -   `specialSystems[]` - systems with separate light/dark images
+-   **Naming Convention**:
+    -   Special icons: `[NAME]-lightmode.png` and `[NAME]-darkmode.png`
+    -   Non-special icons: `[NAME].png` (used for both modes)
+-   **Logic**: CLI automatically checks special arrays when adding icons
+
+### Icon Organizationecific custom instructions to Copilot. For more details, visit https://code.visualstudio.com/docs/copilot/copilot-customization#_use-a-githubcopilotinstructionsmd-file -->
 
 # Crypto Icon Next.js CLI
 

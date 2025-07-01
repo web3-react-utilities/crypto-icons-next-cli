@@ -2,6 +2,7 @@ import fs from "fs-extra";
 import path from "path";
 import chalk from "chalk";
 import { getImageBasePathWithConfig } from "./config";
+import { specialTokens, specialWallets, specialSystems } from "./specialIcons";
 
 export async function addTokens(tokens: string[], targetDir: string): Promise<void> {
     console.log(chalk.blue(`Adding ${tokens.length} token(s)...`));
@@ -52,19 +53,40 @@ async function addToIconMap(name: string, category: string, targetDir: string): 
         throw new Error(`Constants file not found: ${constantsFile}`);
     }
 
-    // Generate Firebase URLs based on category
+    // Generate Firebase URLs based on category and whether it's a special icon
     let lightModePath: string;
     let darkModePath: string;
 
     if (category === "tokens") {
-        lightModePath = `baseImgUrlToken("${name}-lightmode")`;
-        darkModePath = `baseImgUrlToken("${name}-darkmode")`;
+        const isSpecial = specialTokens.includes(name);
+        if (isSpecial) {
+            lightModePath = `baseImgUrlToken("${name}-lightmode")`;
+            darkModePath = `baseImgUrlToken("${name}-darkmode")`;
+        } else {
+            // Non-special tokens use the same image for both modes
+            lightModePath = `baseImgUrlToken("${name}")`;
+            darkModePath = `baseImgUrlToken("${name}")`;
+        }
     } else if (category === "wallets") {
-        lightModePath = `baseImgUrlWallet("${name}-lightmode")`;
-        darkModePath = `baseImgUrlWallet("${name}-darkmode")`;
+        const isSpecial = specialWallets.includes(name);
+        if (isSpecial) {
+            lightModePath = `baseImgUrlWallet("${name}-lightmode")`;
+            darkModePath = `baseImgUrlWallet("${name}-darkmode")`;
+        } else {
+            // Non-special wallets use the same image for both modes
+            lightModePath = `baseImgUrlWallet("${name}")`;
+            darkModePath = `baseImgUrlWallet("${name}")`;
+        }
     } else if (category === "systems") {
-        lightModePath = `baseImgUrlSystem("${name}-lightmode")`;
-        darkModePath = `baseImgUrlSystem("${name}-darkmode")`;
+        const isSpecial = specialSystems.includes(name);
+        if (isSpecial) {
+            lightModePath = `baseImgUrlSystem("${name}-lightmode")`;
+            darkModePath = `baseImgUrlSystem("${name}-darkmode")`;
+        } else {
+            // Non-special systems use the same image for both modes
+            lightModePath = `baseImgUrlSystem("${name}")`;
+            darkModePath = `baseImgUrlSystem("${name}")`;
+        }
     } else {
         throw new Error(`Unknown category: ${category}`);
     }
