@@ -6,9 +6,9 @@ This document lists all available blockchain/DeFi system icons that can be gener
 
 Below is the complete list of all available system icons:
 
-|          |         |     |           |        |        |
-| :------- | :------ | :-- | :-------- | :----- | :----- |
-| Ethereum | Polygon | BSC | Avalanche | Solana | Cosmos |
+|     |         |                |           |           |     |
+| :-- | :------ | :------------- | :-------- | :-------- | :-- |
+| BSC | Jito 🌗 | JustLendDAO 🌗 | Kamino 🌗 | Orchai 🌗 |     |
 
 > **Note**: All system icons support automatic light/dark mode switching based on your theme configuration.
 
