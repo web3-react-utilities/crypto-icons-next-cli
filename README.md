@@ -11,6 +11,44 @@
 -   🔧 **TypeScript first** - Full TypeScript support with proper type definitions
 -   ⚡ **Tree-shakable** - Optimized exports for minimal bundle size
 
+## Example Key
+
+### Token Supported
+
+|           |          |          |          |          |        |
+| :-------- | :------- | :------- | :------- | :------- | :----- |
+| AAVE      | AELF     | AI16Z    | AIRI     | ALGO 🌗  | APT 🌗 |
+| AR 🌗     | ARB      | ATI      | ATOM     | AVAX     | AXS    |
+| Aimstrong | BNB      | BONK     | BTC      | BTCB     | BTT 🌗 |
+| BUSD 🌗   | COMP 🌗  | DAI      | DOGE     | EDU      | ETH    |
+| FDUSD 🌗  | FIL      | FLOKI 🌗 | FLOW     | FLUX     | GALA   |
+| GNO       | GNRT     | GRT      | HBAR 🌗  | HNT      | HOT 🌗 |
+| HT        | HTX 🌗   | IMX      | INJ      | ION      | IOTX   |
+| JASMY     | JITOSOL  | JST      | JUP      | KAS      | KCS    |
+| KWT       | LEE      | LTC      | MANA     | MAX      | METIS  |
+| MILKY     | MINA     | MKR      | NEO      | NEXO     | NFT 🌗 |
+| NTMPI     | OCH      | ORAI 🌗  | ORAIX 🌗 | OSMO     | PEPE   |
+| PYTH      | RACKS    | ROSE     | SHIB     | SNX      | SOL 🌗 |
+| STRX      | STUSDT   | STX      | SUN      | SUNOLD   | TIA    |
+| TON       | TRUMP 🌗 | TRX      | TUSD     | USDAI 🌗 | USDC   |
+| USDD      | USDJ     | USDT     | VET      | VIRTUAL  | WBTC   |
+| WETH      | WIF      | WIN      | XLM 🌗   | XMR      | XRP 🌗 |
+| ZEC 🌗    | ZRX 🌗   | aUSDT    | sORAI    | sSOL     | scATOM |
+| scINJ     | scORAI   | scOSMO   | stATOM   | stOSMO   | xOCH   |
+
+### Wallet Supported
+
+|         |         |          |          |               |          |
+| :------ | :------ | :------- | :------- | :------------ | :------- |
+| Bitget  | Bybit   | Keplr    | Leap     | Ledger        | MetaMask |
+| Owallet | Phantom | Solflare | TronLink | WalletConnect |          |
+
+### System Supported
+
+|     |         |                |           |           |     |
+| :-- | :------ | :------------- | :-------- | :-------- | :-- |
+| BSC | Jito 🌗 | JustLendDAO 🌗 | Kamino 🌗 | Orchai 🌗 |     |
+
 ## Component Props
 
 The `CryptoIcon` component accepts these props:
