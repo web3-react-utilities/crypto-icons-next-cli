@@ -369,3 +369,144 @@ Contributions are welcome! Please feel free to submit a Pull Request.
 ## License
 
 MIT License
+
+## Advanced Usage
+
+### Error Handling & Loading States
+
+The CryptoIcon component supports comprehensive error handling and loading states:
+
+```tsx
+import { CryptoIcon } from "./components/crypto-icons";
+
+export function AdvancedIconExample() {
+    const [loadingState, setLoadingState] = useState<string>("");
+
+    return (
+        <div className="space-y-4">
+            {/* Basic error handling */}
+            <CryptoIcon
+                name="BTC"
+                size={48}
+                onError={(error) => console.error("Icon failed to load:", error)}
+                onLoadingComplete={(result) => console.log("Icon loaded:", result.naturalWidth, "x", result.naturalHeight)}
+            />
+
+            {/* Custom loading component */}
+            <CryptoIcon name="ETH" size={48} loadingComponent={<div className="w-12 h-12 bg-gray-200 animate-pulse rounded-full" />} />
+
+            {/* Custom error component */}
+            <CryptoIcon
+                name="INVALID_ICON"
+                size={48}
+                errorComponent={
+                    <div className="w-12 h-12 bg-red-100 border-2 border-red-300 rounded-full flex items-center justify-center">
+                        <span className="text-red-600">❌</span>
+                    </div>
+                }
+            />
+
+            {/* Blur placeholder */}
+            <CryptoIcon name="SOL" size={48} placeholder="blur" blurDataURL="data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD..." />
+        </div>
+    );
+}
+```
+
+### Full Next.js Image Props Support
+
+Pass any Next.js Image props for advanced customization:
+
+```tsx
+import { CryptoIcon } from "./components/crypto-icons";
+
+export function CustomizedIcon() {
+    return (
+        <CryptoIcon
+            name="BTC"
+            size={64}
+            // Next.js Image props
+            priority={true}
+            quality={90}
+            placeholder="blur"
+            blurDataURL="data:image/jpeg;base64,..."
+            unoptimized={false}
+            loader={({ src, width, quality }) => {
+                return `${src}?w=${width}&q=${quality || 75}`;
+            }}
+            // Custom callbacks
+            onLoadingComplete={(result) => {
+                console.log("Image loaded successfully");
+            }}
+            onError={(error) => {
+                console.error("Failed to load image:", error);
+            }}
+            // Styling
+            className="rounded-full border-2 border-blue-500 shadow-lg hover:scale-110 transition-transform"
+            style={{ filter: "drop-shadow(0 4px 8px rgba(0,0,0,0.2))" }}
+        />
+    );
+}
+```
+
+### Theme-Aware Icons
+
+```tsx
+import { CryptoIcon } from "./components/crypto-icons";
+import { useTheme } from "next-themes";
+
+export function ThemeAwareIcon() {
+    const { theme } = useTheme();
+
+    return (
+        <CryptoIcon
+            name="SOL" // SOL is a special icon with different light/dark versions
+            mode={theme === "dark" ? "dark" : "light"}
+            size={48}
+            className="transition-all duration-300"
+        />
+    );
+}
+```
+
+### Icon Grid with Loading States
+
+```tsx
+import { CryptoIcon } from "./components/crypto-icons";
+import { useState } from "react";
+
+const tokens = ["BTC", "ETH", "SOL", "ADA", "DOT", "AVAX"];
+
+export function IconGrid() {
+    const [loadedIcons, setLoadedIcons] = useState<Set<string>>(new Set());
+
+    const handleIconLoad = (iconName: string) => {
+        setLoadedIcons((prev) => new Set(prev).add(iconName));
+    };
+
+    return (
+        <div className="grid grid-cols-3 gap-4">
+            {tokens.map((token) => (
+                <div key={token} className="p-4 border rounded-lg">
+                    <CryptoIcon
+                        name={token}
+                        size={48}
+                        className="mx-auto"
+                        loadingComponent={<div className="w-12 h-12 bg-gray-200 animate-pulse rounded-full mx-auto" />}
+                        onLoadingComplete={() => handleIconLoad(token)}
+                        fallback={
+                            <div className="w-12 h-12 bg-gray-100 rounded-full flex items-center justify-center mx-auto">
+                                <span className="text-xs font-medium text-gray-600">{token.slice(0, 3)}</span>
+                            </div>
+                        }
+                    />
+                    <p className="text-center mt-2 text-sm">
+                        {token}
+                        {loadedIcons.has(token) && <span className="text-green-600 ml-1">✓</span>}
+                    </p>
+                </div>
+            ))}
+        </div>
+    );
+}
+```

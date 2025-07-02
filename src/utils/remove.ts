@@ -185,11 +185,25 @@ async function removeFromTokenSymbolEnum(token: string, targetDir: string): Prom
 
     if (await fs.pathExists(tokenSymbolFile)) {
         let content = await fs.readFile(tokenSymbolFile, "utf-8");
-        const enumEntry = `  ${token} = "${token}",`;
 
-        if (content.includes(enumEntry)) {
-            content = content.replace(enumEntry + "\n", "").replace(enumEntry, "");
-            await fs.writeFile(tokenSymbolFile, content);
+        // Parse existing enum entries
+        const enumRegex = /export enum TokenSymbol \{([^}]*)\}/;
+        const match = content.match(enumRegex);
+
+        if (match) {
+            const enumContent = match[1];
+            const entries = parseEnumEntries(enumContent);
+
+            // Remove the target entry
+            const filteredEntries = entries.filter((entry: string) => entry !== token);
+
+            if (filteredEntries.length !== entries.length) {
+                // Generate new enum content (already sorted)
+                const newEnumContent = generateEnumContent(filteredEntries, "TokenSymbol");
+                content = content.replace(enumRegex, newEnumContent);
+
+                await fs.writeFile(tokenSymbolFile, content);
+            }
         }
     }
 }
@@ -199,11 +213,25 @@ async function removeFromWalletEnum(wallet: string, targetDir: string): Promise<
 
     if (await fs.pathExists(walletNameFile)) {
         let content = await fs.readFile(walletNameFile, "utf-8");
-        const enumEntry = `  ${wallet} = "${wallet}",`;
 
-        if (content.includes(enumEntry)) {
-            content = content.replace(enumEntry + "\n", "").replace(enumEntry, "");
-            await fs.writeFile(walletNameFile, content);
+        // Parse existing enum entries
+        const enumRegex = /export enum WalletName \{([^}]*)\}/;
+        const match = content.match(enumRegex);
+
+        if (match) {
+            const enumContent = match[1];
+            const entries = parseEnumEntries(enumContent);
+
+            // Remove the target entry
+            const filteredEntries = entries.filter((entry: string) => entry !== wallet);
+
+            if (filteredEntries.length !== entries.length) {
+                // Generate new enum content (already sorted)
+                const newEnumContent = generateEnumContent(filteredEntries, "WalletName");
+                content = content.replace(enumRegex, newEnumContent);
+
+                await fs.writeFile(walletNameFile, content);
+            }
         }
     }
 }
@@ -213,11 +241,25 @@ async function removeFromSystemEnum(system: string, targetDir: string): Promise<
 
     if (await fs.pathExists(systemNameFile)) {
         let content = await fs.readFile(systemNameFile, "utf-8");
-        const enumEntry = `  ${system} = "${system}",`;
 
-        if (content.includes(enumEntry)) {
-            content = content.replace(enumEntry + "\n", "").replace(enumEntry, "");
-            await fs.writeFile(systemNameFile, content);
+        // Parse existing enum entries
+        const enumRegex = /export enum SystemName \{([^}]*)\}/;
+        const match = content.match(enumRegex);
+
+        if (match) {
+            const enumContent = match[1];
+            const entries = parseEnumEntries(enumContent);
+
+            // Remove the target entry
+            const filteredEntries = entries.filter((entry: string) => entry !== system);
+
+            if (filteredEntries.length !== entries.length) {
+                // Generate new enum content (already sorted)
+                const newEnumContent = generateEnumContent(filteredEntries, "SystemName");
+                content = content.replace(enumRegex, newEnumContent);
+
+                await fs.writeFile(systemNameFile, content);
+            }
         }
     }
 }
@@ -322,5 +364,39 @@ function generateIconMapContent(organized: OrganizedIcons): string {
         content += "\n";
     });
 
+    return content;
+}
+
+// Helper functions for enum parsing and generation
+function parseEnumEntries(enumContent: string): string[] {
+    const entries: string[] = [];
+
+    // Extract all enum entries like "BTC = "BTC","
+    const entryRegex = /(\w+)\s*=\s*"[^"]*"/g;
+    let match;
+
+    while ((match = entryRegex.exec(enumContent)) !== null) {
+        entries.push(match[1]);
+    }
+
+    return entries;
+}
+
+function generateEnumContent(entries: string[], enumName: string): string {
+    let content = `export enum ${enumName} {\n`;
+
+    entries.forEach((entry, index) => {
+        content += `  ${entry} = "${entry}"`;
+        if (index < entries.length - 1) {
+            content += ",";
+        }
+        content += "\n";
+    });
+
+    if (entries.length === 0) {
+        content += '  // Example: BTC = "BTC"\n';
+    }
+
+    content += "}";
     return content;
 }
