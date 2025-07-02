@@ -5,10 +5,11 @@ import { addCommand } from "./commands/add";
 import { initCommand } from "./commands/init";
 import { removeCommand } from "./commands/remove";
 import { configCommand } from "./commands/config";
+import * as packageJson from "../package.json";
 
 const program = new Command();
 
-program.name("crypto-next-icons").description("CLI tool for generating crypto icon components for Next.js projects").version("1.0.0");
+program.name("crypto-next-icons").description("CLI tool for generating crypto icon components for Next.js projects").version(packageJson.version);
 
 program
     .command("config")
