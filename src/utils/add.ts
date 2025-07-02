@@ -148,12 +148,6 @@ async function updateTokenSymbolEnum(token: string, targetDir: string): Promise<
     if (await fs.pathExists(tokenSymbolFile)) {
         let content = await fs.readFile(tokenSymbolFile, "utf-8");
 
-        // Check if token already exists
-        const enumEntry = `${token} = "${token}"`;
-        if (content.includes(enumEntry)) {
-            return; // Already exists
-        }
-
         // Parse existing enum entries
         const enumRegex = /export enum TokenSymbol \{([^}]*)\}/;
         const match = content.match(enumRegex);
@@ -161,6 +155,11 @@ async function updateTokenSymbolEnum(token: string, targetDir: string): Promise<
         if (match) {
             const enumContent = match[1];
             const entries = parseEnumEntries(enumContent);
+
+            // Check if token already exists in actual enum entries
+            if (entries.includes(token)) {
+                return; // Already exists
+            }
 
             // Add new entry and sort
             entries.push(token);
@@ -181,12 +180,6 @@ async function updateWalletEnum(wallet: string, targetDir: string): Promise<void
     if (await fs.pathExists(walletNameFile)) {
         let content = await fs.readFile(walletNameFile, "utf-8");
 
-        // Check if wallet already exists
-        const enumEntry = `${wallet} = "${wallet}"`;
-        if (content.includes(enumEntry)) {
-            return; // Already exists
-        }
-
         // Parse existing enum entries
         const enumRegex = /export enum WalletName \{([^}]*)\}/;
         const match = content.match(enumRegex);
@@ -194,6 +187,11 @@ async function updateWalletEnum(wallet: string, targetDir: string): Promise<void
         if (match) {
             const enumContent = match[1];
             const entries = parseEnumEntries(enumContent);
+
+            // Check if wallet already exists in actual enum entries
+            if (entries.includes(wallet)) {
+                return; // Already exists
+            }
 
             // Add new entry and sort
             entries.push(wallet);
@@ -214,12 +212,6 @@ async function updateSystemEnum(system: string, targetDir: string): Promise<void
     if (await fs.pathExists(systemNameFile)) {
         let content = await fs.readFile(systemNameFile, "utf-8");
 
-        // Check if system already exists
-        const enumEntry = `${system} = "${system}"`;
-        if (content.includes(enumEntry)) {
-            return; // Already exists
-        }
-
         // Parse existing enum entries
         const enumRegex = /export enum SystemName \{([^}]*)\}/;
         const match = content.match(enumRegex);
@@ -227,6 +219,11 @@ async function updateSystemEnum(system: string, targetDir: string): Promise<void
         if (match) {
             const enumContent = match[1];
             const entries = parseEnumEntries(enumContent);
+
+            // Check if system already exists in actual enum entries
+            if (entries.includes(system)) {
+                return; // Already exists
+            }
 
             // Add new entry and sort
             entries.push(system);
@@ -333,11 +330,14 @@ function generateIconMapContent(organized: OrganizedIcons): string {
 function parseEnumEntries(enumContent: string): string[] {
     const entries: string[] = [];
 
+    // Remove comment lines first to avoid parsing enum entries in comments
+    const enumContentWithoutComments = enumContent.replace(/^\s*\/\/.*$/gm, "");
+
     // Extract all enum entries like "BTC = "BTC","
     const entryRegex = /(\w+)\s*=\s*"[^"]*"/g;
     let match;
 
-    while ((match = entryRegex.exec(enumContent)) !== null) {
+    while ((match = entryRegex.exec(enumContentWithoutComments)) !== null) {
         entries.push(match[1]);
     }
 

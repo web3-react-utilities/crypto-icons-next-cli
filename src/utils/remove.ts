@@ -371,11 +371,14 @@ function generateIconMapContent(organized: OrganizedIcons): string {
 function parseEnumEntries(enumContent: string): string[] {
     const entries: string[] = [];
 
+    // Remove comment lines first to avoid parsing enum entries in comments
+    const enumContentWithoutComments = enumContent.replace(/^\s*\/\/.*$/gm, "");
+
     // Extract all enum entries like "BTC = "BTC","
     const entryRegex = /(\w+)\s*=\s*"[^"]*"/g;
     let match;
 
-    while ((match = entryRegex.exec(enumContent)) !== null) {
+    while ((match = entryRegex.exec(enumContentWithoutComments)) !== null) {
         entries.push(match[1]);
     }
 
