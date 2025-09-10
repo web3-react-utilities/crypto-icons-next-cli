@@ -46,7 +46,8 @@ async function ensureFirebaseRemotePattern(projectRoot: string) {
 
     const hasImagesBlock = /images\s*:\s*{/.test(content);
     const hasRemotePatterns = /remotePatterns\s*:\s*\[/.test(content);
-    const varConfigMatch = content.match(/const\s+(\w+)\s*=\s*{([\s\S]*?)}\s*;?\s*(?:\n|\r|.)*?export\s+default\s+\1/);
+    // Capture: const <name> = { ... }; followed later by export default <name>
+    const varConfigMatch = content.match(/const\s+(\w+)\s*=\s*{([\s\S]*?)}\s*;?[^]*?export\s+default\s+\1/);
 
     if (!hasImagesBlock) {
         // Try to insert images block before module.exports or export default
@@ -68,14 +69,20 @@ async function ensureFirebaseRemotePattern(projectRoot: string) {
             });
             inserted = true;
         } else if (varConfigMatch) {
-            // Insert images inside the variable object literal
+            // Reconstruct the variable declaration accurately
             const varName = varConfigMatch[1];
             const fullMatch = varConfigMatch[0];
-            const objectBody = varConfigMatch[2];
-            const augmentedBody = (objectBody.trim().length ? objectBody.trim() + "\n" : "") + `  images: {\n    remotePatterns: [\n${patternSnippetArrayEntry},\n    ],\n  },\n`;
-            const replaced = fullMatch.replace(objectBody, augmentedBody);
-            content = content.replace(fullMatch, replaced);
-            inserted = true;
+            // Extract original object literal with braces for safer replacement
+            const objectLiteralMatch = fullMatch.match(new RegExp(`const\\s+${varName}\\s*=\\s*{([\\s\\S]*?)}`));
+            if (objectLiteralMatch) {
+                const inner = objectLiteralMatch[1];
+                if (!/images\s*:/.test(inner)) {
+                    const injectedInner = (inner.trim().length ? inner.trim() + "\n" : "") + `  images: {\n    remotePatterns: [\n${patternSnippetArrayEntry},\n    ],\n  },`;
+                    const newObjectLiteral = objectLiteralMatch[0].replace(inner, injectedInner + "\n");
+                    content = content.replace(objectLiteralMatch[0], newObjectLiteral);
+                    inserted = true;
+                }
+            }
         }
 
         if (inserted) {
