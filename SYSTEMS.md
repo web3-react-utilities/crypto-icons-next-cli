@@ -10,6 +10,7 @@ Below is the complete list of all available system icons:
 | :-- | :------ | :------------- | :-------- | :-------- | :-- |
 | BSC | Jito 🌗 | JustLendDAO 🌗 | Kamino 🌗 | Orchai 🌗 |     |
 
+> **Note**: The systems marked with 🌗 have different images for light and dark mode.
 > **Note**: All system icons support automatic light/dark mode switching based on your theme configuration.
 
 ## Using System Icons in Your Code

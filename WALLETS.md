@@ -6,11 +6,12 @@ This document lists all available crypto wallet icons that can be generated usin
 
 Below is the complete list of all available wallet icons:
 
-|         |         |          |          |               |          |
-| :------ | :------ | :------- | :------- | :------------ | :------- |
-| Bitget  | Bybit   | Keplr    | Leap     | Ledger        | MetaMask |
-| Owallet | Phantom | Solflare | TronLink | WalletConnect |          |
+|          |         |         |          |          |               |
+| :------- | :------ | :------ | :------- | :------- | :------------ |
+| Bitget   | Bybit   | Keplr   | LazorKit | Leap     | Ledger        |
+| MetaMask | Owallet | Phantom | Solflare | TronLink | WalletConnect |
 
+> **Note**: No wallets currently have special light/dark mode variants.
 > **Note**: All wallet icons support automatic light/dark mode switching based on your theme configuration.
 
 ## Using Wallet Icons in Your Code
