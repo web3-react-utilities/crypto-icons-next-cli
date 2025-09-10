@@ -49,6 +49,18 @@ async function ensureFirebaseRemotePattern(projectRoot: string) {
     // Capture: const <name> = { ... }; followed later by export default <name>
     const varConfigMatch = content.match(/const\s+(\w+)\s*=\s*{([\s\S]*?)}\s*;?[^]*?export\s+default\s+\1/);
 
+    // Attempt to repair previously malformed insertion where images block was placed at top-level
+    if (varConfigMatch && !hasImagesBlock) {
+        // Detect a stray top-level images block (starts at beginning or after the JSDoc comment) preceding const declaration
+        const strayBlockRegex = /(\/\*\*[^]*?\*\/\s*)?(\n)?\s*images:\s*{[\s\S]*?\n\s*},\s*\n/;
+        if (strayBlockRegex.test(content)) {
+            content = content.replace(strayBlockRegex, (m) => {
+                // Remove stray block entirely
+                return m.startsWith("/**") ? m.split("*/")[0] + "*/\n" : "";
+            });
+        }
+    }
+
     if (!hasImagesBlock) {
         // Try to insert images block before module.exports or export default
         let inserted = false;
@@ -69,19 +81,14 @@ async function ensureFirebaseRemotePattern(projectRoot: string) {
             });
             inserted = true;
         } else if (varConfigMatch) {
-            // Reconstruct the variable declaration accurately
             const varName = varConfigMatch[1];
-            const fullMatch = varConfigMatch[0];
-            // Extract original object literal with braces for safer replacement
-            const objectLiteralMatch = fullMatch.match(new RegExp(`const\\s+${varName}\\s*=\\s*{([\\s\\S]*?)}`));
-            if (objectLiteralMatch) {
-                const inner = objectLiteralMatch[1];
-                if (!/images\s*:/.test(inner)) {
-                    const injectedInner = (inner.trim().length ? inner.trim() + "\n" : "") + `  images: {\n    remotePatterns: [\n${patternSnippetArrayEntry},\n    ],\n  },`;
-                    const newObjectLiteral = objectLiteralMatch[0].replace(inner, injectedInner + "\n");
-                    content = content.replace(objectLiteralMatch[0], newObjectLiteral);
-                    inserted = true;
-                }
+            // Simple replacement: find 'const <varName> = {' and inject immediately after
+            const declRegex = new RegExp(`const\\s+${varName}\\s*=\\s*{`);
+            if (declRegex.test(content)) {
+                content = content.replace(declRegex, (m) => {
+                    return `${m}\n  images: {\n    remotePatterns: [\n${patternSnippetArrayEntry},\n    ],\n  },`;
+                });
+                inserted = true;
             }
         }
 
