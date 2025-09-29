@@ -16,6 +16,10 @@ export type InitCommandOptions = {
     dir?: string;
 };
 
+export type UpdateCommandOptions = {
+    dir?: string;
+};
+
 export type IconUrls = {
     lightMode: string;
     darkMode: string;

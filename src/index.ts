@@ -5,6 +5,7 @@ import { addCommand } from "./commands/add";
 import { initCommand } from "./commands/init";
 import { removeCommand } from "./commands/remove";
 import { configCommand } from "./commands/config";
+import { updateCommand } from "./commands/update";
 import * as packageJson from "../package.json";
 
 const program = new Command();
@@ -43,5 +44,11 @@ program
     .option("-s, --system <systems...>", "Remove system icons")
     .option("-d, --dir <directory>", "Target directory (default: from config or ./src/components/crypto-icons)")
     .action(removeCommand);
+
+program
+    .command("update")
+    .description("Update image base URLs to Firebase Hosting without re-initializing")
+    .option("-d, --dir <directory>", "Target directory (default: from config or ./src/components/crypto-icons)")
+    .action(updateCommand);
 
 program.parse();

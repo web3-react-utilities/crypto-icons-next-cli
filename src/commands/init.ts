@@ -11,12 +11,12 @@ import { getTargetDirectoryWithConfig } from "../utils/config";
  * prompt the user with a code snippet.
  */
 async function ensureFirebaseRemotePattern(projectRoot: string) {
-    const requiredHost = "firebasestorage.googleapis.com";
+    const requiredHost = "crypto-images-4545f.web.app";
     const patternSnippetObject = `{
-      protocol: 'https',
-      hostname: 'firebasestorage.googleapis.com',
-    }`;
-    const patternSnippetArrayEntry = `      { protocol: 'https', hostname: 'firebasestorage.googleapis.com' }`;
+            protocol: 'https',
+            hostname: 'crypto-images-4545f.web.app',
+        }`;
+    const patternSnippetArrayEntry = `      { protocol: 'https', hostname: 'crypto-images-4545f.web.app' }`;
 
     const candidateFiles = ["next.config.js", "next.config.mjs", "next.config.cjs", "next.config.ts"];
 
