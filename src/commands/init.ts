@@ -47,7 +47,8 @@ async function ensureFirebaseRemotePattern(projectRoot: string) {
     const hasImagesBlock = /images\s*:\s*{/.test(content);
     const hasRemotePatterns = /remotePatterns\s*:\s*\[/.test(content);
     // Capture: const <name> = { ... }; followed later by export default <name>
-    const varConfigMatch = content.match(/const\s+(\w+)\s*=\s*{([\s\S]*?)}\s*;?[^]*?export\s+default\s+\1/);
+    // Support: const nextConfig: NextConfig = { ... }; export default nextConfig
+    const varConfigMatch = content.match(/const\s+(\w+)\s*(?::[^=]+)?=\s*{([\s\S]*?)}\s*;?[^]*?export\s+default\s+\1/);
 
     // Attempt to repair previously malformed insertion where images block was placed at top-level
     if (varConfigMatch && !hasImagesBlock) {
@@ -77,8 +78,8 @@ async function ensureFirebaseRemotePattern(projectRoot: string) {
             inserted = true;
         } else if (varConfigMatch) {
             const varName = varConfigMatch[1];
-            // Simple replacement: find 'const <varName> = {' and inject immediately after
-            const declRegex = new RegExp(`const\\s+${varName}\\s*=\\s*{`);
+            // Simple replacement: find 'const <varName>: <Type>? = {' and inject immediately after
+            const declRegex = new RegExp(`const\\s+${varName}\\s*(?::[^=]+)?=\\s*{`);
             if (declRegex.test(content)) {
                 content = content.replace(declRegex, (m) => {
                     return `${m}\n  images: {\n    remotePatterns: [\n${patternSnippetArrayEntry},\n    ],\n  },`;
@@ -98,7 +99,7 @@ async function ensureFirebaseRemotePattern(projectRoot: string) {
             return `${m}\n    remotePatterns: [\n${patternSnippetArrayEntry},\n    ],`;
         });
         fs.writeFileSync(configPath, content, "utf8");
-        console.log(chalk.green("✔ Injected remotePatterns array with Firebase host into images block."));
+        console.log(chalk.green("✔ Injected remotePatterns array with Hosting domain into images block."));
         return;
     } else if (hasRemotePatterns) {
         // Attempt to append entry inside remotePatterns array
@@ -122,7 +123,7 @@ async function ensureFirebaseRemotePattern(projectRoot: string) {
                     const insertion = (inside.length ? (needsComma ? "," : "") + "\n" : "") + patternSnippetArrayEntry + "\n";
                     content = before + insertion + content.substring(endBracket);
                     fs.writeFileSync(configPath, content, "utf8");
-                    console.log(chalk.green("✔ Appended Firebase host to existing remotePatterns array."));
+                    console.log(chalk.green("✔ Appended Hosting domain to existing remotePatterns array."));
                     return;
                 }
             }
