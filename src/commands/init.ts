@@ -141,14 +141,16 @@ async function ensureFirebaseRemotePattern(projectRoot: string) {
 
 export async function initCommand(options: InitCommandOptions): Promise<void> {
     try {
-        console.log(chalk.blue("\n🚀 Initializing crypto icons for Next.js project...\n"));
+        console.log(chalk.blue("\n🚀 Initializing crypto icons...\n"));
 
         const targetDir = await getTargetDirectoryWithConfig(options.dir);
+        const framework = options.framework ?? "next";
 
-        await createBaseStructure(targetDir);
-
-        // Ensure Next.js image remotePatterns config contains Firebase host
-        await ensureFirebaseRemotePattern(process.cwd());
+        await createBaseStructure(targetDir, framework);
+        if (framework === "next") {
+            // Ensure Next.js image remotePatterns config contains Hosting domain
+            await ensureFirebaseRemotePattern(process.cwd());
+        }
 
         console.log(chalk.green("\n✅ Crypto icons initialized successfully!"));
         console.log(chalk.yellow("\nNext steps:"));

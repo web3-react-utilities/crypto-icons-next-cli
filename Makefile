@@ -6,3 +6,6 @@ push-minor:
 
 push-major:
 	npm version major && npm publish
+
+push-beta:
+	npm version prerelease --preid=beta && npm publish --tag beta

@@ -14,6 +14,7 @@ export type RemoveCommandOptions = {
 
 export type InitCommandOptions = {
     dir?: string;
+    framework?: "next" | "vite";
 };
 
 export type UpdateCommandOptions = {

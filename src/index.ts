@@ -25,6 +25,7 @@ program
     .command("init")
     .description("Initialize crypto icons structure in your Next.js project")
     .option("-d, --dir <directory>", "Target directory (default: from config or ./src/components/crypto-icons)")
+    .option("-f, --framework <framework>", "Target framework: next | vite (default: next)")
     .action(initCommand);
 
 program

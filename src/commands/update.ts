@@ -82,11 +82,8 @@ async function ensureHostingRemotePattern(projectRoot: string) {
     }
 
     if (!configPath) {
-        // Create a minimal next.config.js
-        configPath = path.join(projectRoot, "next.config.js");
-        const content = `/** Added by crypto-next-icons update */\nconst nextConfig = {\n  images: {\n    remotePatterns: [\n${patternSnippetArrayEntry},\n    ],\n  },\n};\n\nmodule.exports = nextConfig;\n`;
-        await fs.writeFile(configPath, content, "utf8");
-        console.log(chalk.green("✔ Created next.config.js with images.remotePatterns for Hosting domain."));
+        // No Next.js config found; likely not a Next.js project (e.g., Vite). Skip creating a config.
+        console.log(chalk.gray("ℹ No next.config.* found; skipped remotePatterns update (not a Next.js project)."));
         return;
     }
 
