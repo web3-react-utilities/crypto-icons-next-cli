@@ -13,10 +13,10 @@ import { getTargetDirectoryWithConfig } from "../utils/config";
 async function ensureFirebaseRemotePattern(projectRoot: string) {
     const requiredHost = "crypto-images-4545f.web.app";
     const patternSnippetObject = `{
-            protocol: 'https',
             hostname: 'crypto-images-4545f.web.app',
+            protocol: 'https',
         }`;
-    const patternSnippetArrayEntry = `      { protocol: 'https', hostname: 'crypto-images-4545f.web.app' }`;
+    const patternSnippetArrayEntry = `      { hostname: 'crypto-images-4545f.web.app', protocol: 'https' }`;
 
     const candidateFiles = ["next.config.js", "next.config.mjs", "next.config.cjs", "next.config.ts"];
 
@@ -34,13 +34,13 @@ async function ensureFirebaseRemotePattern(projectRoot: string) {
         configPath = path.join(projectRoot, "next.config.js");
         const content = `/** Added by crypto-next-icons */\nconst nextConfig = {\n  images: {\n    remotePatterns: [\n${patternSnippetArrayEntry},\n    ],\n  },\n};\n\nmodule.exports = nextConfig;\n`;
         fs.writeFileSync(configPath, content, "utf8");
-        console.log(chalk.green("✔ Created next.config.js with required images.remotePatterns for Firebase Storage."));
+        console.log(chalk.green("✔ Created next.config.js with required images.remotePatterns for Hosting domain."));
         return;
     }
 
     let content = fs.readFileSync(configPath, "utf8");
     if (content.includes(requiredHost)) {
-        console.log(chalk.gray("ℹ Firebase Storage remote pattern already present in next.config."));
+        console.log(chalk.gray("ℹ Hosting domain already present in next.config."));
         return;
     }
 
@@ -65,16 +65,11 @@ async function ensureFirebaseRemotePattern(projectRoot: string) {
         // Try to insert images block before module.exports or export default
         let inserted = false;
         if (/module\.exports\s*=\s*/.test(content)) {
-            content = content.replace(/module\.exports\s*=\s*/, (match) => {
+            // Directly inject images block into the exported object literal
+            content = content.replace(/module\.exports\s*=\s*{/, (m) => {
                 inserted = true;
-                return `// Added by crypto-next-icons\nconst __ci_next_config_injected_images = {\n  images: {\n    remotePatterns: [\n${patternSnippetArrayEntry},\n    ],\n  },\n};\n\n${match}`;
+                return `${m}\n  images: {\n    remotePatterns: [\n${patternSnippetArrayEntry},\n    ],\n  },`;
             });
-            if (inserted) {
-                // Merge object if module.exports is an object literal; simple heuristic
-                content = content.replace(/module\.exports\s*=\s*{/, (m) => {
-                    return m + "\n  ...__ci_next_config_injected_images.images,";
-                });
-            }
         } else if (/export\s+default\s*{/.test(content)) {
             content = content.replace(/export\s+default\s*{/, (m) => {
                 return `${m}\n  images: {\n    remotePatterns: [\n${patternSnippetArrayEntry},\n    ],\n  },`;
@@ -94,7 +89,7 @@ async function ensureFirebaseRemotePattern(projectRoot: string) {
 
         if (inserted) {
             fs.writeFileSync(configPath, content, "utf8");
-            console.log(chalk.green("✔ Added images.remotePatterns (Firebase Storage) to existing next.config."));
+            console.log(chalk.green("✔ Added images.remotePatterns (Hosting domain) to existing next.config."));
             return;
         }
     } else if (hasImagesBlock && !hasRemotePatterns) {
