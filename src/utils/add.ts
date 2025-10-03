@@ -109,12 +109,14 @@ async function addToIconMap(name: string, category: string, targetDir: string): 
     const newline = content.includes("\r\n") ? "\r\n" : "\n";
     // Detect indentation used for entries inside iconMap
     const detectedIndent = detectIndent(mapContent) || "  ";
+    // Detect key quoting style (", ' or none) and trailing comma preference
+    const keyQuote = detectKeyQuoteStyle(mapContent) || '"';
+    const preferTrailingComma = detectTrailingCommaPreference(mapContent);
 
-    // Check if icon already exists in the actual iconMap content (not in comments)
-    const iconKey = `"${name}":`;
-    // Remove comment lines to avoid false positives
+    // Check if icon already exists (quoted or unquoted key), ignoring comments
     const mapContentWithoutComments = mapContent.replace(/^\s*\/\/.*$/gm, "");
-    if (mapContentWithoutComments.includes(iconKey)) {
+    const existsRegex = new RegExp(`(^|\\n)\\s*([\"']?)${name}\\2\\s*:`, "m");
+    if (existsRegex.test(mapContentWithoutComments)) {
         console.log(chalk.yellow(`⚠️ Icon ${name} already exists in map, skipping...`));
         return;
     }
@@ -141,7 +143,7 @@ async function addToIconMap(name: string, category: string, targetDir: string): 
     }
 
     // Regenerate the iconMap content
-    const newMapContent = generateIconMapContent(existingIcons, detectedIndent, newline);
+    const newMapContent = generateIconMapContent(existingIcons, detectedIndent, newline, keyQuote, preferTrailingComma);
     const updatedContent = content.replace(mapRegex, beforeMap + newMapContent + afterMap);
 
     await fs.writeFile(constantsFile, updatedContent);
@@ -182,14 +184,16 @@ function parseExistingIcons(mapContent: string): OrganizedIcons {
         systems: [],
     };
 
-    // Parse existing icon entries
-    const iconRegex = /"([^"]+)":\s*\{[^}]+lightMode:\s*([^,]+),\s*darkMode:\s*([^}]+)\s*\}/g;
+    // Remove comment lines to avoid false positives
+    const withoutComments = mapContent.replace(/^\s*\/\/.*$/gm, "");
+    // Parse existing icon entries with quoted or unquoted keys
+    const iconRegex = /(\n|^)\s*([\"']?)([A-Za-z0-9_-]+)\2\s*:\s*\{[^}]*?lightMode:\s*([^,}]+),\s*darkMode:\s*([^}]+)\s*\}/g;
     let match;
 
-    while ((match = iconRegex.exec(mapContent)) !== null) {
-        const name = match[1];
-        const lightMode = stripTrailingComma(match[2].trim());
-        const darkMode = stripTrailingComma(match[3].trim());
+    while ((match = iconRegex.exec(withoutComments)) !== null) {
+        const name = match[3];
+        const lightMode = stripTrailingComma(match[4].trim());
+        const darkMode = stripTrailingComma(match[5].trim());
 
         const iconEntry: IconEntry = { name, lightMode, darkMode };
 
@@ -211,18 +215,19 @@ function stripTrailingComma(value: string): string {
     return value.replace(/,\s*$/, "");
 }
 
-function generateIconMapContent(organized: OrganizedIcons, indent: string, nl: string): string {
+function generateIconMapContent(organized: OrganizedIcons, indent: string, nl: string, keyQuote: '"' | "'" | "", preferTrailingComma: boolean): string {
     // Base indent is what's used before a key line (e.g., 2 or 4 spaces)
     const i1 = indent; // level 1 inside map
     const i2 = indent + indent; // level 2 for properties
+    const q = (s: string) => (keyQuote ? `${keyQuote}${s}${keyQuote}` : s);
 
     let content = nl + i1 + "// Token icons will be added here" + nl;
 
     // Add tokens section
     organized.tokens.forEach((icon: IconEntry, index: number) => {
-        content += `${i1}"${icon.name}": {${nl}${i2}lightMode: ${icon.lightMode},${nl}${i2}darkMode: ${icon.darkMode}${nl}${i1}}`;
+        content += `${i1}${q(icon.name)}: {${nl}${i2}lightMode: ${icon.lightMode},${nl}${i2}darkMode: ${icon.darkMode}${nl}${i1}}`;
         // Add comma if not the last item in tokens or if there are wallets/systems after
-        if (index < organized.tokens.length - 1 || organized.wallets.length > 0 || organized.systems.length > 0) {
+        if (index < organized.tokens.length - 1 || organized.wallets.length > 0 || organized.systems.length > 0 || preferTrailingComma) {
             content += ",";
         }
         content += nl;
@@ -234,9 +239,9 @@ function generateIconMapContent(organized: OrganizedIcons, indent: string, nl: s
 
     // Add wallets section
     organized.wallets.forEach((icon: IconEntry, index: number) => {
-        content += `${i1}"${icon.name}": {${nl}${i2}lightMode: ${icon.lightMode},${nl}${i2}darkMode: ${icon.darkMode}${nl}${i1}}`;
+        content += `${i1}${q(icon.name)}: {${nl}${i2}lightMode: ${icon.lightMode},${nl}${i2}darkMode: ${icon.darkMode}${nl}${i1}}`;
         // Add comma if not the last item in wallets or if there are systems after
-        if (index < organized.wallets.length - 1 || organized.systems.length > 0) {
+        if (index < organized.wallets.length - 1 || organized.systems.length > 0 || preferTrailingComma) {
             content += ",";
         }
         content += nl;
@@ -248,9 +253,9 @@ function generateIconMapContent(organized: OrganizedIcons, indent: string, nl: s
 
     // Add systems section
     organized.systems.forEach((icon: IconEntry, index: number) => {
-        content += `${i1}"${icon.name}": {${nl}${i2}lightMode: ${icon.lightMode},${nl}${i2}darkMode: ${icon.darkMode}${nl}${i1}}`;
+        content += `${i1}${q(icon.name)}: {${nl}${i2}lightMode: ${icon.lightMode},${nl}${i2}darkMode: ${icon.darkMode}${nl}${i1}}`;
         // Add comma if not the last item
-        if (index < organized.systems.length - 1) {
+        if (index < organized.systems.length - 1 || preferTrailingComma) {
             content += ",";
         }
         content += nl;
@@ -267,6 +272,23 @@ function detectIndent(mapContent: string): string | null {
     const tokenComment = mapContent.match(/\n([ \t]+)\/\/\s*Token icons will be added here/);
     if (tokenComment && tokenComment[1]) return tokenComment[1];
     return null;
+}
+
+function detectKeyQuoteStyle(mapContent: string): '"' | "'" | "" | null {
+    const withoutComments = mapContent.replace(/^\s*\/\/.*$/gm, "");
+    const m = withoutComments.match(/\n\s*([\"']?)[A-Za-z0-9_-]+\1\s*:/);
+    if (!m) return null;
+    const q = m[1];
+    if (q === '"' || q === "'") return q as '"' | "'";
+    return "";
+}
+
+function detectTrailingCommaPreference(mapContent: string): boolean {
+    // If we observe a comma after an entry before the next section comment, assume trailing comma style
+    if (/}\s*,\s*\r?\n\s*\/\/\s*Wallet icons will be added here/.test(mapContent)) return true;
+    if (/}\s*,\s*\r?\n\s*\/\/\s*System icons will be added here/.test(mapContent)) return true;
+    // Otherwise, default to no trailing comma at end of a section
+    return false;
 }
 
 // Helper functions for enum parsing and generation
