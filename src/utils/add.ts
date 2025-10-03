@@ -93,8 +93,8 @@ async function addToIconMap(name: string, category: string, targetDir: string): 
 
     let content = await fs.readFile(constantsFile, "utf-8");
 
-    // Find the iconMap object first
-    const mapRegex = /(export const iconMap: Record<string, ImagePaths> = \{)([\s\S]*?)(\};)/;
+    // Find the iconMap object first (tolerant to whitespace/newlines)
+    const mapRegex = /(export\s+const\s+iconMap\s*:\s*Record<\s*string\s*,\s*ImagePaths\s*>\s*=\s*\{)([\s\S]*?)(\}\s*;)/i;
     const match = content.match(mapRegex);
 
     if (!match) {
@@ -104,6 +104,11 @@ async function addToIconMap(name: string, category: string, targetDir: string): 
     const beforeMap = match[1];
     const mapContent = match[2];
     const afterMap = match[3];
+
+    // Detect newline style to respect user's format
+    const newline = content.includes("\r\n") ? "\r\n" : "\n";
+    // Detect indentation used for entries inside iconMap
+    const detectedIndent = detectIndent(mapContent) || "  ";
 
     // Check if icon already exists in the actual iconMap content (not in comments)
     const iconKey = `"${name}":`;
@@ -136,106 +141,25 @@ async function addToIconMap(name: string, category: string, targetDir: string): 
     }
 
     // Regenerate the iconMap content
-    const newMapContent = generateIconMapContent(existingIcons);
+    const newMapContent = generateIconMapContent(existingIcons, detectedIndent, newline);
     const updatedContent = content.replace(mapRegex, beforeMap + newMapContent + afterMap);
 
     await fs.writeFile(constantsFile, updatedContent);
 }
 
 async function updateTokenSymbolEnum(token: string, targetDir: string): Promise<void> {
-    const tokenSymbolFile = path.join(targetDir, "types", "TokenSymbol.ts");
-
-    if (await fs.pathExists(tokenSymbolFile)) {
-        let content = await fs.readFile(tokenSymbolFile, "utf-8");
-
-        // Parse existing enum entries
-        const enumRegex = /export enum TokenSymbol \{([^}]*)\}/;
-        const match = content.match(enumRegex);
-
-        if (match) {
-            const enumContent = match[1];
-            const entries = parseEnumEntries(enumContent);
-
-            // Check if token already exists in actual enum entries
-            if (entries.includes(token)) {
-                return; // Already exists
-            }
-
-            // Add new entry and sort
-            entries.push(token);
-            entries.sort();
-
-            // Generate new enum content
-            const newEnumContent = generateEnumContent(entries, "TokenSymbol");
-            content = content.replace(enumRegex, newEnumContent);
-
-            await fs.writeFile(tokenSymbolFile, content);
-        }
-    }
+    const file = path.join(targetDir, "types", "TokenSymbol.ts");
+    await updateEnumFile(file, "TokenSymbol", token);
 }
 
 async function updateWalletEnum(wallet: string, targetDir: string): Promise<void> {
-    const walletNameFile = path.join(targetDir, "types", "WalletName.ts");
-
-    if (await fs.pathExists(walletNameFile)) {
-        let content = await fs.readFile(walletNameFile, "utf-8");
-
-        // Parse existing enum entries
-        const enumRegex = /export enum WalletName \{([^}]*)\}/;
-        const match = content.match(enumRegex);
-
-        if (match) {
-            const enumContent = match[1];
-            const entries = parseEnumEntries(enumContent);
-
-            // Check if wallet already exists in actual enum entries
-            if (entries.includes(wallet)) {
-                return; // Already exists
-            }
-
-            // Add new entry and sort
-            entries.push(wallet);
-            entries.sort();
-
-            // Generate new enum content
-            const newEnumContent = generateEnumContent(entries, "WalletName");
-            content = content.replace(enumRegex, newEnumContent);
-
-            await fs.writeFile(walletNameFile, content);
-        }
-    }
+    const file = path.join(targetDir, "types", "WalletName.ts");
+    await updateEnumFile(file, "WalletName", wallet);
 }
 
 async function updateSystemEnum(system: string, targetDir: string): Promise<void> {
-    const systemNameFile = path.join(targetDir, "types", "SystemName.ts");
-
-    if (await fs.pathExists(systemNameFile)) {
-        let content = await fs.readFile(systemNameFile, "utf-8");
-
-        // Parse existing enum entries
-        const enumRegex = /export enum SystemName \{([^}]*)\}/;
-        const match = content.match(enumRegex);
-
-        if (match) {
-            const enumContent = match[1];
-            const entries = parseEnumEntries(enumContent);
-
-            // Check if system already exists in actual enum entries
-            if (entries.includes(system)) {
-                return; // Already exists
-            }
-
-            // Add new entry and sort
-            entries.push(system);
-            entries.sort();
-
-            // Generate new enum content
-            const newEnumContent = generateEnumContent(entries, "SystemName");
-            content = content.replace(enumRegex, newEnumContent);
-
-            await fs.writeFile(systemNameFile, content);
-        }
-    }
+    const file = path.join(targetDir, "types", "SystemName.ts");
+    await updateEnumFile(file, "SystemName", system);
 }
 
 // Helper types and functions for organizing icons
@@ -264,8 +188,8 @@ function parseExistingIcons(mapContent: string): OrganizedIcons {
 
     while ((match = iconRegex.exec(mapContent)) !== null) {
         const name = match[1];
-        const lightMode = match[2].trim();
-        const darkMode = match[3].trim();
+        const lightMode = stripTrailingComma(match[2].trim());
+        const darkMode = stripTrailingComma(match[3].trim());
 
         const iconEntry: IconEntry = { name, lightMode, darkMode };
 
@@ -282,48 +206,67 @@ function parseExistingIcons(mapContent: string): OrganizedIcons {
     return organized;
 }
 
-function generateIconMapContent(organized: OrganizedIcons): string {
-    let content = "\n  // Token icons will be added here\n";
+function stripTrailingComma(value: string): string {
+    // Remove a trailing comma if formatter added one
+    return value.replace(/,\s*$/, "");
+}
+
+function generateIconMapContent(organized: OrganizedIcons, indent: string, nl: string): string {
+    // Base indent is what's used before a key line (e.g., 2 or 4 spaces)
+    const i1 = indent; // level 1 inside map
+    const i2 = indent + indent; // level 2 for properties
+
+    let content = nl + i1 + "// Token icons will be added here" + nl;
 
     // Add tokens section
     organized.tokens.forEach((icon: IconEntry, index: number) => {
-        content += `  "${icon.name}": {\n    lightMode: ${icon.lightMode},\n    darkMode: ${icon.darkMode}\n  }`;
+        content += `${i1}"${icon.name}": {${nl}${i2}lightMode: ${icon.lightMode},${nl}${i2}darkMode: ${icon.darkMode}${nl}${i1}}`;
         // Add comma if not the last item in tokens or if there are wallets/systems after
         if (index < organized.tokens.length - 1 || organized.wallets.length > 0 || organized.systems.length > 0) {
             content += ",";
         }
-        content += "\n";
+        content += nl;
     });
 
-    if (organized.tokens.length > 0) content += "\n";
+    if (organized.tokens.length > 0) content += nl;
 
-    content += "  // Wallet icons will be added here\n";
+    content += i1 + "// Wallet icons will be added here" + nl;
 
     // Add wallets section
     organized.wallets.forEach((icon: IconEntry, index: number) => {
-        content += `  "${icon.name}": {\n    lightMode: ${icon.lightMode},\n    darkMode: ${icon.darkMode}\n  }`;
+        content += `${i1}"${icon.name}": {${nl}${i2}lightMode: ${icon.lightMode},${nl}${i2}darkMode: ${icon.darkMode}${nl}${i1}}`;
         // Add comma if not the last item in wallets or if there are systems after
         if (index < organized.wallets.length - 1 || organized.systems.length > 0) {
             content += ",";
         }
-        content += "\n";
+        content += nl;
     });
 
-    if (organized.wallets.length > 0) content += "\n";
+    if (organized.wallets.length > 0) content += nl;
 
-    content += "  // System icons will be added here\n";
+    content += i1 + "// System icons will be added here" + nl;
 
     // Add systems section
     organized.systems.forEach((icon: IconEntry, index: number) => {
-        content += `  "${icon.name}": {\n    lightMode: ${icon.lightMode},\n    darkMode: ${icon.darkMode}\n  }`;
+        content += `${i1}"${icon.name}": {${nl}${i2}lightMode: ${icon.lightMode},${nl}${i2}darkMode: ${icon.darkMode}${nl}${i1}}`;
         // Add comma if not the last item
         if (index < organized.systems.length - 1) {
             content += ",";
         }
-        content += "\n";
+        content += nl;
     });
 
     return content;
+}
+
+function detectIndent(mapContent: string): string | null {
+    // Try to find the first entry line and use its leading whitespace
+    const entryLine = mapContent.match(/\n([ \t]+)"[^"\n]+"\s*:/);
+    if (entryLine && entryLine[1]) return entryLine[1];
+    // Fallback: try to read indent from the token comment line
+    const tokenComment = mapContent.match(/\n([ \t]+)\/\/\s*Token icons will be added here/);
+    if (tokenComment && tokenComment[1]) return tokenComment[1];
+    return null;
 }
 
 // Helper functions for enum parsing and generation
@@ -344,21 +287,54 @@ function parseEnumEntries(enumContent: string): string[] {
     return entries;
 }
 
-function generateEnumContent(entries: string[], enumName: string): string {
-    let content = `export enum ${enumName} {\n`;
-
-    entries.forEach((entry, index) => {
-        content += `  ${entry} = "${entry}"`;
-        if (index < entries.length - 1) {
-            content += ",";
-        }
-        content += "\n";
-    });
-
+function generateEnumBody(entries: string[], indent: string, nl: string): string {
+    let body = nl;
+    const i1 = indent || "  ";
     if (entries.length === 0) {
-        content += '  // Example: BTC = "BTC"\n';
+        body += i1 + '// Example: BTC = "BTC"' + nl;
+        return body;
     }
+    entries.forEach((entry, index) => {
+        body += `${i1}${entry} = "${entry}"`;
+        if (index < entries.length - 1) body += ",";
+        body += nl;
+    });
+    return body;
+}
 
-    content += "}";
-    return content;
+async function updateEnumFile(filePath: string, enumName: string, newEntry: string): Promise<void> {
+    if (!(await fs.pathExists(filePath))) return;
+    let content = await fs.readFile(filePath, "utf-8");
+
+    const nl = detectNewline(content);
+    // Match enum block: keep header and closing brace, replace only body
+    const enumBlock = new RegExp(`(export\\s+enum\\s+${enumName}\\s*\\{)([\\s\\S]*?)(\\})`);
+    const match = content.match(enumBlock);
+    if (!match) return;
+
+    const header = match[1];
+    const body = match[2];
+    const footer = match[3];
+
+    const entries = parseEnumEntries(body);
+    if (entries.includes(newEntry)) return;
+    entries.push(newEntry);
+    entries.sort();
+
+    const indent = detectEnumIndent(body) || "  ";
+    const newBody = generateEnumBody(entries, indent, nl);
+    const replacement = header + newBody + footer;
+    content = content.replace(enumBlock, replacement);
+    await fs.writeFile(filePath, content);
+}
+
+function detectNewline(text: string): string {
+    return text.includes("\r\n") ? "\r\n" : "\n";
+}
+
+function detectEnumIndent(enumBody: string): string | null {
+    // Find first entry line like '  BTC = "BTC"'
+    const m = enumBody.match(/\n([ \t]+)\w+\s*=\s*"/);
+    if (m && m[1]) return m[1];
+    return null;
 }

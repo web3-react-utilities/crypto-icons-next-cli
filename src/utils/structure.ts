@@ -128,7 +128,7 @@ async function createUniversalIconComponent(targetDir: string): Promise<void> {
 import Image, { ImageProps } from "next/image";
 import { ComponentProps } from "./types";
 import { getIconPaths } from "./constants/imagePaths";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 export type CryptoIconProps = Omit<ComponentProps, 'alt'> & 
   Omit<ImageProps, 'src' | 'width' | 'height' | 'alt'> & {
@@ -148,7 +148,7 @@ export type CryptoIconProps = Omit<ComponentProps, 'alt'> &
 
 export function CryptoIcon({
   name,
-  mode = "light",
+  mode,
   className = "",
   size = 24,
   width,
@@ -165,6 +165,8 @@ export function CryptoIcon({
 }: CryptoIconProps) {
   const [imageState, setImageState] = useState<'loading' | 'loaded' | 'error'>('loading');
   const [imageError, setImageError] = useState<Error | null>(null);
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => setMounted(true), []);
   const iconPaths = getIconPaths(name);
 
   if (!iconPaths) {
@@ -184,7 +186,23 @@ export function CryptoIcon({
 
   const finalWidth = width ?? size;
   const finalHeight = height ?? size;
-  const imageSrc = mode === "dark" ? iconPaths.darkMode : iconPaths.lightMode;
+
+  // Avoid SSR/CSR mismatch when mode is not provided: wait until mounted
+  if (!mode && !mounted) {
+    if (loadingComponent) {
+      return <>{loadingComponent}</>;
+    }
+    return (
+      <div
+        className={"inline-block rounded bg-gray-200 dark:bg-gray-700 " + className}
+        style={{ width: finalWidth, height: finalHeight }}
+        aria-hidden="true"
+      />
+    );
+  }
+
+  const effectiveMode = mode ?? "light";
+  const imageSrc = effectiveMode === "dark" ? iconPaths.darkMode : iconPaths.lightMode;
 
   const handleError = () => {
     const error = new Error("Failed to load image: " + imageSrc);
@@ -224,6 +242,7 @@ export function CryptoIcon({
       onLoadingComplete={handleLoadingComplete}
       placeholder={placeholder}
       blurDataURL={blurDataURL}
+      style={{ width: finalWidth + 'px!important', height: finalHeight + 'px!important' }}
       {...imageProps}
     />
   );
