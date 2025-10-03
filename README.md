@@ -110,6 +110,12 @@ npx crypto-icon-next-cli@latest init
 npx crypto-icon-next-cli@latest init
 ```
 
+**Supported for VITE projects as well!**
+
+```bash
+npx crypto-icon-next-cli@latest init -f vite
+```
+
 2. **Add some icons**:
 
 ```bash
